@@ -14,8 +14,7 @@ type WishGroup = {
 export function AdminApp() {
   const [checking, setChecking] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const [isSample, setIsSample] = useState(false);
-  const [sampleHint, setSampleHint] = useState<string | null>(null);
+  const [configured, setConfigured] = useState(true);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [groups, setGroups] = useState<WishGroup[]>([]);
@@ -25,12 +24,10 @@ export function AdminApp() {
     const res = await fetch("/api/admin/session");
     const data = (await res.json()) as {
       authenticated: boolean;
-      isSample: boolean;
-      samplePasswordHint: string | null;
+      configured?: boolean;
     };
     setAuthenticated(data.authenticated);
-    setIsSample(data.isSample);
-    setSampleHint(data.samplePasswordHint);
+    setConfigured(data.configured !== false);
     setChecking(false);
     return data.authenticated;
   }, []);
@@ -64,14 +61,17 @@ export function AdminApp() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password }),
     });
-    const data = (await res.json()) as { error?: string; isSample?: boolean };
+    const data = (await res.json()) as { error?: string };
     if (!res.ok) {
+      if (res.status === 503) {
+        setConfigured(false);
+      }
       setError(data.error || "Ошибка входа");
       return;
     }
     setPassword("");
     setAuthenticated(true);
-    setIsSample(Boolean(data.isSample));
+    setConfigured(true);
     await loadWishes();
   }
 
@@ -100,15 +100,10 @@ export function AdminApp() {
           <p className="mt-3 text-[var(--ink)]/70">
             Список желаний доступен только с паролем руководителя.
           </p>
-          {isSample && sampleHint ? (
-            <p className="mt-4 border border-dashed border-[var(--orange)] bg-white px-4 py-3 text-sm">
-              Локально / без секрета используется{" "}
-              <strong>образец данных</strong>: пароль{" "}
-              <code className="font-semibold text-[var(--orange-deep)]">
-                {sampleHint}
-              </code>
-              . В публикации задайте{" "}
-              <code>ADMIN_PASSWORD</code> в Secrets.
+          {!configured ? (
+            <p className="mt-4 border border-dashed border-[var(--line)] bg-white px-4 py-3 text-sm text-[var(--ink)]/70">
+              Админ-панель не настроена: задайте переменную окружения{" "}
+              <code>ADMIN_PASSWORD</code>.
             </p>
           ) : null}
           <form onSubmit={onLogin} className="mt-8 space-y-4">
@@ -164,13 +159,6 @@ export function AdminApp() {
       </header>
 
       <div className="mx-auto max-w-5xl px-5 py-10 sm:px-10">
-        {isSample ? (
-          <p className="mb-6 text-sm text-[var(--ink)]/60">
-            Сейчас активен образец пароля для локальной разработки. В production
-            задайте ADMIN_PASSWORD через Secrets.
-          </p>
-        ) : null}
-
         {loadingWishes ? <p>Загружаем…</p> : null}
 
         {!loadingWishes && groups.length === 0 ? (

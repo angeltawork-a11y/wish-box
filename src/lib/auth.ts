@@ -1,19 +1,16 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
-export const SAMPLE_ADMIN_PASSWORD = "wishbox-admin";
 const COOKIE_NAME = "wishbox_admin_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
 
-export function getAdminPasswordConfig(): {
-  password: string;
-  isSample: boolean;
-} {
+export function getAdminPassword(): string | null {
   const fromEnv = process.env.ADMIN_PASSWORD?.trim() ?? "";
-  if (fromEnv !== "") {
-    return { password: fromEnv, isSample: false };
-  }
-  return { password: SAMPLE_ADMIN_PASSWORD, isSample: true };
+  return fromEnv !== "" ? fromEnv : null;
+}
+
+export function isAdminConfigured(): boolean {
+  return getAdminPassword() !== null;
 }
 
 function signingKey(password: string): string {
@@ -25,7 +22,10 @@ function sign(payload: string, password: string): string {
 }
 
 export function verifyPassword(candidate: string): boolean {
-  const { password } = getAdminPasswordConfig();
+  const password = getAdminPassword();
+  if (password === null) {
+    return false;
+  }
   const a = Buffer.from(candidate);
   const b = Buffer.from(password);
   if (a.length !== b.length) {
@@ -36,7 +36,10 @@ export function verifyPassword(candidate: string): boolean {
 }
 
 export function createSessionToken(): string {
-  const { password } = getAdminPasswordConfig();
+  const password = getAdminPassword();
+  if (password === null) {
+    throw new Error("ADMIN_PASSWORD is not configured");
+  }
   const exp = Date.now() + SESSION_TTL_MS;
   const payload = `ok.${exp}`;
   return `${payload}.${sign(payload, password)}`;
@@ -44,13 +47,14 @@ export function createSessionToken(): string {
 
 export function isValidSessionToken(token: string | undefined | null): boolean {
   if (!token) return false;
+  const password = getAdminPassword();
+  if (password === null) return false;
   const parts = token.split(".");
   if (parts.length !== 3) return false;
   const [ok, expStr, sig] = parts;
   if (ok !== "ok") return false;
   const exp = Number(expStr);
   if (!Number.isFinite(exp) || Date.now() > exp) return false;
-  const { password } = getAdminPasswordConfig();
   const payload = `${ok}.${expStr}`;
   const expected = sign(payload, password);
   const a = Buffer.from(sig);

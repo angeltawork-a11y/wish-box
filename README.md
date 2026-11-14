@@ -15,7 +15,13 @@ env -u DATABASE_URL npm run dev
 - Админ (желания): `/admin`
 - Справочник: `/admin/staff`
 
-Если `ADMIN_PASSWORD` не задан, локальный образец пароля: `wishbox-admin` (показывается только в UI входа).
+Для проверки админки задайте `ADMIN_PASSWORD` в окружении (без него вход недоступен):
+
+```bash
+ADMIN_PASSWORD='your-local-password' env -u DATABASE_URL npm run dev
+```
+
+В опубликованном приложении задайте `ADMIN_PASSWORD` через Secrets Cursor.
 
 ## Данные
 
