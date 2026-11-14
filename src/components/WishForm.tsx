@@ -1,15 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { formatAmountRub, type WishAmount } from "@/lib/amounts";
-
-type Employee = {
-  id: number;
-  department_id: number;
-  name: string;
-  title: string;
-  department_name?: string;
-};
 
 type Props = {
   amount: WishAmount;
@@ -25,7 +17,6 @@ const ALLOWED_TYPES = new Set([
 ]);
 
 export function WishForm({ amount, onSuccess }: Props) {
-  const [employees, setEmployees] = useState<Employee[]>([]);
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [department, setDepartment] = useState("");
@@ -38,21 +29,6 @@ export function WishForm({ amount, onSuccess }: Props) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    fetch("/api/staff")
-      .then((r) => r.json())
-      .then((data: { employees?: Employee[] }) => {
-        if (!cancelled) setEmployees(data.employees ?? []);
-      })
-      .catch(() => {
-        if (!cancelled) setEmployees([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
     if (!image) {
       setPreviewUrl(null);
       return;
@@ -62,66 +38,54 @@ export function WishForm({ amount, onSuccess }: Props) {
     return () => URL.revokeObjectURL(url);
   }, [image]);
 
-  const suggestions = useMemo(() => {
-    const q = name.trim().toLowerCase();
-    if (q.length < 1) return [];
-    return employees
-      .filter(
-        (e) =>
-          e.name.toLowerCase().includes(q) ||
-          e.title.toLowerCase().includes(q),
-      )
-      .slice(0, 6);
-  }, [employees, name]);
-
-  function pickEmployee(e: Employee) {
-    setName(e.name);
-    setTitle(e.title);
-    setDepartment(e.department_name ?? "");
-    setEmployeeId(e.id);
-  }
-
-  function onNameChange(value: string) {
-    setName(value);
-    setEmployeeId(null);
-    const exact = employees.find(
-      (e) => e.name.toLowerCase() === value.trim().toLowerCase(),
-    );
-    if (exact) {
-      setTitle(exact.title);
-      setDepartment(exact.department_name ?? "");
-      setEmployeeId(exact.id);
+  useEffect(() => {
+    const qName = name.trim();
+    const qTitle = title.trim();
+    if (qName.length < 2) {
+      setDepartment("");
+      setEmployeeId(null);
       return;
     }
-    const byTitle = employees.find(
-      (e) =>
-        e.title.toLowerCase() === title.trim().toLowerCase() &&
-        title.trim() !== "",
-    );
-    if (byTitle && value.trim()) {
-      setDepartment(byTitle.department_name ?? "");
-    } else {
-      setDepartment("");
-    }
-  }
 
-  function onTitleChange(value: string) {
-    setTitle(value);
-    if (employeeId != null) return;
-    const match = employees.find(
-      (e) =>
-        e.name.toLowerCase() === name.trim().toLowerCase() ||
-        (value.trim() !== "" &&
-          e.title.toLowerCase() === value.trim().toLowerCase() &&
-          e.name.toLowerCase().includes(name.trim().toLowerCase())),
-    );
-    if (match) {
-      setDepartment(match.department_name ?? "");
-      if (match.name.toLowerCase() === name.trim().toLowerCase()) {
-        setEmployeeId(match.id);
-      }
-    }
-  }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      fetch("/api/staff/lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: qName, title: qTitle }),
+      })
+        .then((r) => r.json())
+        .then(
+          (data: {
+            found?: boolean;
+            employeeId?: number | null;
+            department?: string;
+          }) => {
+            if (cancelled) return;
+            if (data.found) {
+              setDepartment(data.department ?? "");
+              setEmployeeId(
+                typeof data.employeeId === "number" ? data.employeeId : null,
+              );
+            } else {
+              setDepartment("");
+              setEmployeeId(null);
+            }
+          },
+        )
+        .catch(() => {
+          if (!cancelled) {
+            setDepartment("");
+            setEmployeeId(null);
+          }
+        });
+    }, 280);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [name, title]);
 
   function onImageChange(file: File | null) {
     setError("");
@@ -185,37 +149,18 @@ export function WishForm({ amount, onSuccess }: Props) {
         </p>
       </div>
 
-      <div className="relative">
+      <div>
         <label className="mb-2 block text-sm font-semibold tracking-wide">
           Имя
         </label>
         <input
           className="field"
           value={name}
-          onChange={(e) => onNameChange(e.target.value)}
+          onChange={(e) => setName(e.target.value)}
           placeholder="Как вас зовут"
           autoComplete="name"
           required
         />
-        {suggestions.length > 0 && employeeId == null && (
-          <ul className="absolute z-20 mt-1 w-full border border-[var(--line)] bg-white shadow-[0_12px_30px_rgba(0,0,0,0.12)]">
-            {suggestions.map((s) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  className="flex w-full flex-col items-start px-4 py-3 text-left hover:bg-[var(--orange-mist)]"
-                  onClick={() => pickEmployee(s)}
-                >
-                  <span className="font-semibold">{s.name}</span>
-                  <span className="text-sm opacity-70">
-                    {s.title}
-                    {s.department_name ? ` · ${s.department_name}` : ""}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
 
       <div>
@@ -225,7 +170,7 @@ export function WishForm({ amount, onSuccess }: Props) {
         <input
           className="field"
           value={title}
-          onChange={(e) => onTitleChange(e.target.value)}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="Ваша должность"
           autoComplete="organization-title"
         />

@@ -5,10 +5,23 @@ import {
   isAdminConfigured,
   verifyPassword,
 } from "@/lib/auth";
+import {
+  clientIp,
+  rateLimit,
+  rateLimitedResponse,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const limited = rateLimit(`admin-login:${clientIp(request)}`, 5, 60_000);
+  if (!limited.ok) {
+    return rateLimitedResponse(
+      "Слишком много попыток входа. Попробуйте через минуту.",
+      limited.retryAfterSec,
+    );
+  }
+
   if (!isAdminConfigured()) {
     return NextResponse.json(
       {

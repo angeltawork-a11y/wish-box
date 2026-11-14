@@ -1,10 +1,5 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { sql } from "./db";
-
-type SeedEmployee = { name: string; title: string };
-type SeedDepartment = { name: string; employees: SeedEmployee[] };
-type SeedFile = { departments: SeedDepartment[] };
+import { STAFF_SEED } from "./staff-seed-data";
 
 let seeding: Promise<void> | undefined;
 
@@ -25,11 +20,7 @@ async function runSeed(): Promise<void> {
   const count = Number(rows[0]?.count ?? 0);
   if (count > 0) return;
 
-  const seedPath = path.join(process.cwd(), "data", "staff-seed.json");
-  const raw = await readFile(seedPath, "utf8");
-  const data = JSON.parse(raw) as SeedFile;
-
-  for (const dept of data.departments) {
+  for (const dept of STAFF_SEED.departments) {
     const inserted = await sql<{ id: number }>(
       "INSERT INTO departments (name) VALUES ($1) RETURNING id",
       [dept.name],

@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { isWishAmount } from "@/lib/amounts";
 import { ensureSeeded } from "@/lib/seed";
 import { sql } from "@/lib/db";
+import {
+  clientIp,
+  rateLimit,
+  rateLimitedResponse,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -24,6 +29,14 @@ function isSafeHttpUrl(value: string): boolean {
 }
 
 export async function POST(request: Request) {
+  const limited = rateLimit(`wish-submit:${clientIp(request)}`, 10, 60_000);
+  if (!limited.ok) {
+    return rateLimitedResponse(
+      "Слишком много отправок. Подождите минуту и попробуйте снова.",
+      limited.retryAfterSec,
+    );
+  }
+
   await ensureSeeded();
 
   let form: FormData;
