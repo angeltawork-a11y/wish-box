@@ -3,6 +3,7 @@ import {
   createEmployeeToken,
   employeeCookieOptions,
   EMPLOYEE_COOKIE,
+  isSessionSecretConfigured,
   readEmployeeSession,
 } from "@/lib/employee-session";
 import type { EmployeeContext } from "@/lib/employee-types";
@@ -30,6 +31,16 @@ export async function POST(request: Request) {
     return rateLimitedResponse(
       "Слишком много сохранений. Подождите немного.",
       limited.retryAfterSec,
+    );
+  }
+
+  if (!isSessionSecretConfigured()) {
+    return NextResponse.json(
+      {
+        error:
+          "Сессия сотрудника не настроена: задайте переменную SESSION_SECRET в окружении.",
+      },
+      { status: 503 },
     );
   }
 
