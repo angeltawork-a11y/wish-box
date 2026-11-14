@@ -9,14 +9,28 @@ const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 14;
 
 type StoredPayload = EmployeeContext & { exp: number };
 
+/**
+ * Employee cookies are HMAC-signed with SESSION_SECRET from the environment.
+ * Production / publish: bind SESSION_SECRET via Cursor Secrets (required).
+ * Local only: SESSION_SECRET='dev-local-only' ADMIN_PASSWORD='…' npm run dev
+ * — never ship a default signing key in source.
+ */
+export function getSessionSecret(): string | null {
+  const fromEnv = process.env.SESSION_SECRET?.trim() ?? "";
+  return fromEnv !== "" ? fromEnv : null;
+}
+
+export function isSessionSecretConfigured(): boolean {
+  return getSessionSecret() !== null;
+}
+
 function signingKey(): string {
-  const fromEnv =
-    process.env.EMPLOYEE_SESSION_SECRET?.trim() ||
-    process.env.ADMIN_PASSWORD?.trim() ||
-    "";
-  const material = fromEnv !== "" ? fromEnv : "wishbox-employee-public-v1";
+  const secret = getSessionSecret();
+  if (secret === null) {
+    throw new Error("SESSION_SECRET is not configured");
+  }
   return createHmac("sha256", "wishbox-employee-session-v1")
-    .update(material)
+    .update(secret)
     .digest("hex");
 }
 
@@ -35,10 +49,16 @@ function encode(ctx: EmployeeContext): string {
 
 function decode(token: string | undefined | null): EmployeeContext | null {
   if (!token) return null;
+  if (!isSessionSecretConfigured()) return null;
   const parts = token.split(".");
   if (parts.length !== 2) return null;
   const [body, sig] = parts;
-  const expected = sign(body);
+  let expected: string;
+  try {
+    expected = sign(body);
+  } catch {
+    return null;
+  }
   const a = Buffer.from(sig);
   const b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;

@@ -1,5 +1,7 @@
+import "server-only";
+
 import { sql } from "./db";
-import { STAFF_SEED } from "./staff-seed-data";
+import { getStaffSeed } from "./staff-seed-data";
 
 let seeding: Promise<void> | undefined;
 
@@ -20,7 +22,8 @@ async function runSeed(): Promise<void> {
   const count = Number(rows[0]?.count ?? 0);
   if (count > 0) return;
 
-  for (const dept of STAFF_SEED.departments) {
+  const staffSeed = getStaffSeed();
+  for (const dept of staffSeed.departments) {
     const inserted = await sql<{ id: number }>(
       "INSERT INTO departments (name) VALUES ($1) RETURNING id",
       [dept.name],

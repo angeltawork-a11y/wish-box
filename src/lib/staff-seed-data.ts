@@ -1,151 +1,83 @@
-/** Server-only staff seed. Not served as a static/public JSON. */
+import "server-only";
+
 export type SeedEmployee = { name: string; title: string };
 export type SeedDepartment = { name: string; employees: SeedEmployee[] };
 
-export const STAFF_SEED: { departments: SeedDepartment[] } = {
-  "departments": [
+/**
+ * Server-only staff seed for empty DB.
+ * Prefer STAFF_SEED_JSON (Cursor Secret) with the real roster — never put real PII in shipped source.
+ * Local without the secret: fictional demo rows below so lookup/admin still work in PGlite.
+ */
+const DEMO_STAFF_SEED: { departments: SeedDepartment[] } = {
+  departments: [
     {
-      "name": "Руководство",
-      "employees": [
-        {
-          "name": "Ляпитова Ольга",
-          "title": "CEO"
-        }
-      ]
+      name: "Руководство",
+      employees: [{ name: "Пример Руководитель", title: "CEO" }],
     },
     {
-      "name": "Админ",
-      "employees": [
-        {
-          "name": "Бугаева Ангелина",
-          "title": "админ-рук."
-        },
-        {
-          "name": "Лучко",
-          "title": "Администратор по таблицам и документообороту"
-        },
-        {
-          "name": "Ковалева Людмила",
-          "title": "Администратор по документообороту"
-        },
-        {
-          "name": "Ирина",
-          "title": "админ лаборатории"
-        }
-      ]
+      name: "Админ",
+      employees: [
+        { name: "Пример Администратор", title: "админ-рук." },
+        { name: "Пример Документовед", title: "Администратор по документообороту" },
+      ],
     },
     {
-      "name": "IT",
-      "employees": [
-        {
-          "name": "Смагин",
-          "title": "IT специалист"
-        },
-        {
-          "name": "Любовь Теренина",
-          "title": "IT специалист"
-        },
-        {
-          "name": "Смагин (проект)",
-          "title": "IT специалист"
-        }
-      ]
+      name: "IT",
+      employees: [{ name: "Пример IT", title: "IT специалист" }],
     },
     {
-      "name": "HR",
-      "employees": [
-        {
-          "name": "Прошина Александра (рекрутер)",
-          "title": "рекрутер"
-        }
-      ]
+      name: "HR",
+      employees: [{ name: "Пример HR", title: "рекрутер" }],
     },
     {
-      "name": "Продажи",
-      "employees": [
-        {
-          "name": "Никита",
-          "title": "РОП"
-        },
-        {
-          "name": "Давидович Евгений",
-          "title": "МОП"
-        },
-        {
-          "name": "Лепеха Илья",
-          "title": "МОП"
-        },
-        {
-          "name": "Яна",
-          "title": "МОП"
-        },
-        {
-          "name": "София",
-          "title": "МОП"
-        },
-        {
-          "name": "Внутренние игры",
-          "title": "МОП"
-        },
-        {
-          "name": "Контроль качества (ОКК)",
-          "title": "контроль качества"
-        }
-      ]
+      name: "Продажи",
+      employees: [
+        { name: "Пример РОП", title: "РОП" },
+        { name: "Пример МОП", title: "МОП" },
+      ],
     },
     {
-      "name": "Маркетинг",
-      "employees": [
-        {
-          "name": "Ляпитова Полина",
-          "title": "Руководитель отдела маркетинга"
-        },
-        {
-          "name": "Юлия Кускова",
-          "title": "маркетолог соц сети"
-        },
-        {
-          "name": "Прошина Александра (копирайтер)",
-          "title": "копирайтер"
-        }
-      ]
+      name: "Маркетинг",
+      employees: [{ name: "Пример Маркетолог", title: "маркетолог" }],
     },
     {
-      "name": "Производство",
-      "employees": [
-        {
-          "name": "Ляпитова Дарья",
-          "title": "рук. произв."
-        },
-        {
-          "name": "Ангелина Лягина",
-          "title": "старший куратор"
-        },
-        {
-          "name": "Ирина Белобородова",
-          "title": "куратор"
-        },
-        {
-          "name": "Медведева Евгения",
-          "title": "куратор"
-        },
-        {
-          "name": "Черный Александр",
-          "title": "наставник"
-        },
-        {
-          "name": "Шмелев Иван",
-          "title": "наставник"
-        },
-        {
-          "name": "Харитонова Татьяна",
-          "title": "наставник"
-        },
-        {
-          "name": "Копилец Виктор",
-          "title": "наставник"
-        }
-      ]
+      name: "Производство",
+      employees: [
+        { name: "Пример Куратор", title: "куратор" },
+        { name: "Пример Наставник", title: "наставник" },
+      ],
+    },
+  ],
+};
+
+function parseStaffSeedJson(raw: string): { departments: SeedDepartment[] } | null {
+  try {
+    const data = JSON.parse(raw) as { departments?: SeedDepartment[] };
+    if (!data || !Array.isArray(data.departments) || data.departments.length === 0) {
+      return null;
     }
-  ]
-} as const;
+    for (const dept of data.departments) {
+      if (!dept || typeof dept.name !== "string" || !Array.isArray(dept.employees)) {
+        return null;
+      }
+      for (const emp of dept.employees) {
+        if (!emp || typeof emp.name !== "string" || typeof emp.title !== "string") {
+          return null;
+        }
+      }
+    }
+    return { departments: data.departments };
+  } catch {
+    return null;
+  }
+}
+
+/** Resolve seed: env secret first, else fictional demo (never a real roster in source). */
+export function getStaffSeed(): { departments: SeedDepartment[] } {
+  const fromEnv = process.env.STAFF_SEED_JSON?.trim() ?? "";
+  if (fromEnv !== "") {
+    const parsed = parseStaffSeedJson(fromEnv);
+    if (parsed) return parsed;
+  }
+  return DEMO_STAFF_SEED;
+}
