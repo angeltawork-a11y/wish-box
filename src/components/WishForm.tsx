@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { formatAmountRub, type WishAmount } from "@/lib/amounts";
+import type { EmployeeContext } from "@/lib/employee-types";
 
 type Props = {
   amount: WishAmount;
@@ -17,16 +18,33 @@ const ALLOWED_TYPES = new Set([
 ]);
 
 export function WishForm({ amount, onSuccess }: Props) {
-  const [name, setName] = useState("");
-  const [title, setTitle] = useState("");
-  const [department, setDepartment] = useState("");
-  const [employeeId, setEmployeeId] = useState<number | null>(null);
+  const [employee, setEmployee] = useState<EmployeeContext | null>(null);
+  const [booting, setBooting] = useState(true);
   const [wish, setWish] = useState("");
   const [link, setLink] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/employee")
+      .then((r) => r.json())
+      .then((data: { saved?: boolean; employee?: EmployeeContext | null }) => {
+        if (cancelled) return;
+        if (data.saved && data.employee) {
+          setEmployee(data.employee);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setBooting(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!image) {
@@ -37,55 +55,6 @@ export function WishForm({ amount, onSuccess }: Props) {
     setPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [image]);
-
-  useEffect(() => {
-    const qName = name.trim();
-    const qTitle = title.trim();
-    if (qName.length < 2) {
-      setDepartment("");
-      setEmployeeId(null);
-      return;
-    }
-
-    let cancelled = false;
-    const timer = setTimeout(() => {
-      fetch("/api/staff/lookup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: qName, title: qTitle }),
-      })
-        .then((r) => r.json())
-        .then(
-          (data: {
-            found?: boolean;
-            employeeId?: number | null;
-            department?: string;
-          }) => {
-            if (cancelled) return;
-            if (data.found) {
-              setDepartment(data.department ?? "");
-              setEmployeeId(
-                typeof data.employeeId === "number" ? data.employeeId : null,
-              );
-            } else {
-              setDepartment("");
-              setEmployeeId(null);
-            }
-          },
-        )
-        .catch(() => {
-          if (!cancelled) {
-            setDepartment("");
-            setEmployeeId(null);
-          }
-        });
-    }, 280);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [name, title]);
 
   function onImageChange(file: File | null) {
     setError("");
@@ -109,16 +78,22 @@ export function WishForm({ amount, onSuccess }: Props) {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
+    if (!employee) {
+      setError("Сначала сохраните данные сотрудника");
+      return;
+    }
     setLoading(true);
     try {
       const form = new FormData();
-      form.set("name", name);
-      form.set("title", title);
-      form.set("department", department);
+      form.set("name", employee.name);
+      form.set("title", employee.title);
+      form.set("department", employee.department);
       form.set("wish", wish);
       form.set("amount", String(amount));
       form.set("link", link);
-      if (employeeId != null) form.set("employeeId", String(employeeId));
+      if (employee.employeeId != null) {
+        form.set("employeeId", String(employee.employeeId));
+      }
       if (image) form.set("image", image);
 
       const res = await fetch("/api/wishes", {
@@ -138,6 +113,23 @@ export function WishForm({ amount, onSuccess }: Props) {
     }
   }
 
+  if (booting) {
+    return <p className="text-[var(--ink)]/60">Загрузка…</p>;
+  }
+
+  if (!employee) {
+    return (
+      <div className="space-y-4">
+        <p className="text-[var(--ink)]/75">
+          Нужно сначала сохранить имя и должность.
+        </p>
+        <a href="/employee" className="btn-primary inline-flex">
+          К данным сотрудника
+        </a>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       <div className="border border-[var(--line)] bg-[var(--orange-mist)] px-4 py-3">
@@ -149,43 +141,21 @@ export function WishForm({ amount, onSuccess }: Props) {
         </p>
       </div>
 
-      <div>
-        <label className="mb-2 block text-sm font-semibold tracking-wide">
-          Имя
-        </label>
-        <input
-          className="field"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Как вас зовут"
-          autoComplete="name"
-          required
-        />
-      </div>
-
-      <div>
-        <label className="mb-2 block text-sm font-semibold tracking-wide">
-          Должность
-        </label>
-        <input
-          className="field"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Ваша должность"
-          autoComplete="organization-title"
-        />
-      </div>
-
-      <div>
-        <label className="mb-2 block text-sm font-semibold tracking-wide">
-          Отдел
-        </label>
-        <input
-          className="field bg-[var(--surface)]"
-          value={department || "Определится по справочнику"}
-          readOnly
-          aria-live="polite"
-        />
+      <div className="border border-[var(--line)] bg-[var(--white)] px-4 py-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink)]/55">
+          Сотрудник
+        </p>
+        <p className="mt-1 font-semibold text-[var(--ink)]">{employee.name}</p>
+        <p className="text-sm text-[var(--ink)]/70">
+          {[employee.title, employee.department].filter(Boolean).join(" · ") ||
+            "Отдел определится при сохранении"}
+        </p>
+        <a
+          href="/employee"
+          className="mt-2 inline-block text-sm text-[var(--orange-deep)] hover:underline"
+        >
+          Изменить данные
+        </a>
       </div>
 
       <div>
