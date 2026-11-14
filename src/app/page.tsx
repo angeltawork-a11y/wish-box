@@ -31,14 +31,14 @@ export default function HomePage() {
               Волшебный ящик желаний
             </h1>
             <p className="mx-auto max-w-md text-base text-white/80 sm:text-lg">
-              Откройте ящик, выберите сумму и положите мечту внутрь.
+              Откройте ящик, сохраните данные и заполните Wish List.
             </p>
           </div>
 
           <div className="w-full max-w-[480px]">
             <GiftBox3D
               label="Написать желание"
-              onOpen={() => router.push("/amounts")}
+              onOpen={() => router.push("/employee")}
             />
           </div>
         </div>

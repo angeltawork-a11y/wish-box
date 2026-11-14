@@ -44,8 +44,8 @@ function WishPageInner() {
       <div className="mx-auto max-w-3xl px-5 py-10 sm:px-10">
         <h1 className="display text-3xl sm:text-4xl">Ваше желание</h1>
         <p className="mt-3 max-w-md text-[var(--ink)]/70">
-          Укажите имя и должность — отдел подставится из справочника. Можно
-          приложить картинку и ссылку.
+          Данные сотрудника уже сохранены. Напишите желание — можно приложить
+          картинку и ссылку.
         </p>
 
         <div className="mt-8 border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-8">

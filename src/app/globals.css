@@ -85,24 +85,37 @@ select {
   }
 }
 
-@keyframes lid-hint {
-  0%,
-  100% {
-    transform: translate3d(0, -52%, 0) rotateX(0deg);
-  }
-  45%,
-  55% {
-    transform: translate3d(0, -52%, 0) rotateX(-26deg);
-  }
-}
-
 @keyframes gift-float {
   0%,
   100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes gift-shimmer {
+  0%,
+  100% {
+    opacity: 0.55;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.95;
+    filter: brightness(1.12);
+  }
+}
+
+@keyframes spark-twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.7) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(18deg);
   }
 }
 
@@ -141,24 +154,33 @@ select {
     linear-gradient(180deg, #fff7f0 0%, #ffffff 100%);
 }
 
-/* —— CSS 3D gift box —— */
+/* —— Premium CSS 3D gift box (black + copper) —— */
 .gift3d {
   --box: 220px;
   --depth: 220px;
-  --h: 160px;
-  --lid-h: 48px;
-  perspective: 900px;
+  --h: 168px;
+  --lid-h: 42px;
+  --copper-1: #f0c9a0;
+  --copper-2: #d4926a;
+  --copper-3: #b86b45;
+  --copper-4: #8a4528;
+  --black-1: #2a2a2c;
+  --black-2: #141416;
+  --black-3: #0a0a0b;
+  perspective: 1100px;
   width: 100%;
+  position: relative;
   display: grid;
   place-items: center;
+  gap: 0.35rem;
 }
 
 .gift3d--hero {
-  --box: min(56vw, 250px);
-  --depth: min(56vw, 250px);
-  --h: min(40vw, 172px);
-  --lid-h: min(12vw, 52px);
-  min-height: min(72vw, 440px);
+  --box: min(58vw, 260px);
+  --depth: min(58vw, 260px);
+  --h: min(42vw, 180px);
+  --lid-h: min(11vw, 46px);
+  min-height: min(78vw, 460px);
 }
 
 .gift3d--compact {
@@ -170,33 +192,77 @@ select {
 
 .gift3d__stage {
   position: relative;
-  width: calc(var(--box) * 1.55);
-  height: calc(var(--h) + var(--lid-h) + 120px);
+  width: calc(var(--box) * 1.7);
+  height: calc(var(--h) + var(--lid-h) + 140px);
   display: grid;
   place-items: center;
-  animation: gift-float 5.5s ease-in-out infinite;
+  animation: gift-float 5.8s ease-in-out infinite;
+}
+
+.gift3d.is-opening .gift3d__stage {
+  animation-play-state: paused;
 }
 
 .gift3d__glow {
   position: absolute;
-  inset: 18% 10% 8%;
-  background: radial-gradient(circle, rgba(255, 154, 77, 0.55), transparent 68%);
-  filter: blur(28px);
-  animation: soft-light-drift 6s ease-in-out infinite;
+  inset: 14% 8% 10%;
+  background:
+    radial-gradient(circle at 45% 40%, rgba(212, 146, 106, 0.45), transparent 55%),
+    radial-gradient(circle at 55% 60%, rgba(255, 106, 0, 0.22), transparent 60%);
+  filter: blur(30px);
+  animation: gift-shimmer 4.8s ease-in-out infinite;
   pointer-events: none;
 }
+
+.gift3d__sparkles {
+  position: absolute;
+  inset: 8% 12% 18%;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.gift3d__spark {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle, #fff 0%, rgba(255, 176, 107, 0.9) 35%, transparent 70%);
+  clip-path: polygon(
+    50% 0%,
+    58% 38%,
+    100% 50%,
+    58% 62%,
+    50% 100%,
+    42% 62%,
+    0% 50%,
+    42% 38%
+  );
+  animation: spark-twinkle 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgba(255, 176, 107, 0.8));
+}
+
+.gift3d__spark--1 { top: 18%; left: 22%; animation-delay: 0.1s; }
+.gift3d__spark--2 { top: 28%; right: 18%; width: 10px; height: 10px; animation-delay: 0.7s; }
+.gift3d__spark--3 { top: 48%; left: 12%; width: 12px; height: 12px; animation-delay: 1.2s; }
+.gift3d__spark--4 { top: 42%; right: 12%; animation-delay: 0.4s; }
+.gift3d__spark--5 { bottom: 28%; left: 30%; width: 9px; height: 9px; animation-delay: 1.6s; }
+.gift3d__spark--6 { bottom: 34%; right: 28%; width: 11px; height: 11px; animation-delay: 0.9s; }
 
 .gift3d__scene {
   position: relative;
   width: var(--box);
   height: var(--h);
   transform-style: preserve-3d;
-  transform: rotateX(var(--tilt-x, -12deg)) rotateY(var(--tilt-y, 22deg));
-  transition: transform 0.25s ease-out;
+  transform: rotateX(var(--tilt-x, -22deg)) rotateY(var(--tilt-y, 28deg));
+  transition: transform 0.28s ease-out;
 }
 
 .gift3d.is-hovered .gift3d__scene {
   transition: transform 0.08s linear;
+}
+
+.gift3d.is-opening .gift3d__scene {
+  transition: transform 0.5s ease;
+  transform: rotateX(-16deg) rotateY(22deg);
 }
 
 .gift3d__face {
@@ -222,15 +288,14 @@ select {
 
 .gift3d__front {
   background:
-    linear-gradient(160deg, #ff9a4d 0%, #ff6a00 48%, #c74300 100%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 28%),
+    linear-gradient(145deg, var(--black-1) 0%, var(--black-2) 48%, var(--black-3) 100%);
   transform: translateZ(calc(var(--depth) / 2));
-  box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.18);
-  align-items: end;
-  padding-bottom: 12%;
+  box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.45);
 }
 
 .gift3d__back {
-  background: linear-gradient(180deg, #3a1a0a, #1a0d07);
+  background: linear-gradient(180deg, #1a1a1c, #070708);
   transform: rotateY(180deg) translateZ(calc(var(--depth) / 2));
 }
 
@@ -243,12 +308,16 @@ select {
 }
 
 .gift3d__left {
-  background: linear-gradient(180deg, #2a140a, #140a06);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 30%),
+    linear-gradient(160deg, #1c1c1e, #0b0b0c);
   transform: rotateY(-90deg) translateZ(calc(var(--box) / 2));
 }
 
 .gift3d__right {
-  background: linear-gradient(180deg, #ff8a2a, #e24f00);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 26%),
+    linear-gradient(200deg, #242426, #0d0d0e 70%, #080809);
   transform: rotateY(90deg) translateZ(calc(var(--box) / 2));
 }
 
@@ -261,270 +330,570 @@ select {
 }
 
 .gift3d__top {
-  background: linear-gradient(135deg, #1a100c, #0a0705);
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 154, 77, 0.35), transparent 55%),
+    linear-gradient(135deg, #1a120e, #0a0705);
   transform: rotateX(90deg) translateZ(calc(var(--h) / 2));
 }
 
 .gift3d__bottom {
-  background: #0a0705;
+  background: #050506;
   transform: rotateX(-90deg) translateZ(calc(var(--h) / 2));
 }
 
-.gift3d__ribbon--v,
-.gift3d__ribbon--h {
+.gift3d__inner {
   position: absolute;
-  background: linear-gradient(90deg, #fff4e8, #ffe0c2, #fff4e8);
+  inset: 8% 10%;
+  background: radial-gradient(circle, rgba(255, 140, 60, 0.55), transparent 70%);
+  transform: translateZ(0) translateY(-6%);
+  opacity: 0;
+  transition: opacity 0.55s ease 0.15s;
   pointer-events: none;
-  z-index: 2;
+  filter: blur(8px);
 }
 
-.gift3d__ribbon--v {
-  width: 14%;
-  height: 28%;
-  left: 43%;
+.gift3d.is-opening .gift3d__inner {
+  opacity: 1;
+}
+
+.gift3d__ribbon--face-v {
+  position: absolute;
+  left: 42%;
   top: 0;
-  transform: translateZ(calc(var(--depth) / 2 + 1px));
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
-  /* Stops above the CTA so the face label stays readable */
-}
-
-.gift3d__ribbon--h {
-  width: var(--box);
-  height: 12%;
-  left: 0;
-  top: 10%;
-  transform: translateZ(calc(var(--depth) / 2 + 1px));
+  width: 16%;
+  height: 100%;
+  background:
+    linear-gradient(
+      90deg,
+      var(--copper-4),
+      var(--copper-2) 28%,
+      var(--copper-1) 50%,
+      var(--copper-2) 72%,
+      var(--copper-4)
+    );
+  box-shadow:
+    inset 0 0 8px rgba(255, 220, 180, 0.35),
+    0 0 10px rgba(184, 107, 69, 0.35);
+  pointer-events: none;
 }
 
 .gift3d__lid {
   position: absolute;
-  left: 0;
+  left: -3%;
   top: 0;
-  width: var(--box);
+  width: 106%;
   height: var(--lid-h);
   transform-style: preserve-3d;
-  transform-origin: top center;
-  transform: translate3d(0, -52%, 0) rotateX(0deg);
-  animation: lid-hint 5.8s ease-in-out infinite;
+  transform-origin: center top;
+  transform: translate3d(0, -58%, 0) rotateX(0deg);
+  transition: transform 0.85s cubic-bezier(0.22, 0.82, 0.2, 1);
   z-index: 3;
 }
 
-.gift3d.is-hovered .gift3d__lid {
-  animation-play-state: paused;
-  transform: translate3d(0, -52%, 0) rotateX(-32deg);
+.gift3d.is-hovered:not(.is-opening) .gift3d__lid {
+  transform: translate3d(0, -58%, 0) rotateX(-10deg);
   transition: transform 0.35s ease;
+}
+
+.gift3d.is-opening .gift3d__lid {
+  transform: translate3d(0, -58%, 0) rotateX(-118deg);
 }
 
 .gift3d__lid-front,
 .gift3d__lid-back {
-  width: var(--box);
+  width: 100%;
   height: var(--lid-h);
   left: 0;
   top: 0;
 }
 
 .gift3d__lid-front {
-  background: linear-gradient(180deg, #ffb06b, #ff6a00);
-  transform: translateZ(calc(var(--depth) / 2 + 4px));
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  background:
+    linear-gradient(180deg, var(--copper-1), var(--copper-3) 70%, var(--copper-4));
+  transform: translateZ(calc(var(--depth) / 2 + 6px));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
 }
 
 .gift3d__lid-back {
-  background: #1a100c;
-  transform: rotateY(180deg) translateZ(calc(var(--depth) / 2 + 4px));
+  background: linear-gradient(180deg, var(--copper-4), #5c2e1a);
+  transform: rotateY(180deg) translateZ(calc(var(--depth) / 2 + 6px));
 }
 
 .gift3d__lid-left,
 .gift3d__lid-right {
-  width: calc(var(--depth) + 8px);
+  width: calc(var(--depth) + 12px);
   height: var(--lid-h);
   top: 0;
-  left: calc((var(--box) - var(--depth) - 8px) / 2);
+  left: calc((100% - var(--depth) - 12px) / 2);
 }
 
 .gift3d__lid-left {
-  background: #2a160c;
-  transform: rotateY(-90deg) translateZ(calc(var(--box) / 2 + 2px));
+  background: linear-gradient(180deg, var(--copper-3), var(--copper-4));
+  transform: rotateY(-90deg) translateZ(calc(var(--box) / 2 + 4px));
 }
 
 .gift3d__lid-right {
-  background: #e24f00;
-  transform: rotateY(90deg) translateZ(calc(var(--box) / 2 + 2px));
+  background: linear-gradient(180deg, var(--copper-2), var(--copper-4));
+  transform: rotateY(90deg) translateZ(calc(var(--box) / 2 + 4px));
 }
 
 .gift3d__lid-top {
-  width: calc(var(--box) + 8px);
-  height: calc(var(--depth) + 8px);
-  left: -4px;
-  top: calc((var(--lid-h) - var(--depth) - 8px) / 2);
+  width: calc(100% + 4px);
+  height: calc(var(--depth) + 12px);
+  left: -2px;
+  top: calc((var(--lid-h) - var(--depth) - 12px) / 2);
   background:
-    linear-gradient(145deg, #ff9a4d, #ff6a00 55%, #c74300);
+    linear-gradient(145deg, #f6d7b8 0%, var(--copper-2) 42%, var(--copper-3) 72%, var(--copper-4) 100%);
   transform: rotateX(90deg) translateZ(calc(var(--lid-h) / 2));
+  box-shadow: inset 0 0 30px rgba(255, 220, 180, 0.25);
+  overflow: hidden;
+}
+
+.gift3d__ribbon--lid-v,
+.gift3d__ribbon--lid-h {
+  position: absolute;
+  background:
+    linear-gradient(
+      90deg,
+      var(--copper-4),
+      var(--copper-1) 45%,
+      var(--copper-3)
+    );
+  pointer-events: none;
+}
+
+.gift3d__ribbon--lid-v {
+  left: 42%;
+  top: 0;
+  width: 16%;
+  height: 100%;
+  background:
+    linear-gradient(
+      90deg,
+      #7a3a20,
+      var(--copper-1) 40%,
+      var(--copper-2) 60%,
+      #7a3a20
+    );
+}
+
+.gift3d__ribbon--lid-h {
+  left: 0;
+  top: 42%;
+  width: 100%;
+  height: 16%;
+  background:
+    linear-gradient(
+      180deg,
+      #7a3a20,
+      var(--copper-1) 40%,
+      var(--copper-2) 60%,
+      #7a3a20
+    );
 }
 
 .gift3d__bow {
   position: absolute;
   left: 50%;
-  top: -18%;
-  width: 42%;
-  height: 70%;
-  transform: translateX(-50%) translateZ(calc(var(--depth) / 2 + 18px));
+  top: -42%;
+  width: 58%;
+  height: 92%;
+  transform: translateX(-50%) translateZ(calc(var(--depth) / 2 + 24px));
   pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
 }
 
 .gift3d__bow-loop {
   position: absolute;
-  top: 10%;
-  width: 48%;
-  height: 70%;
-  border: 4px solid #fff4e8;
-  border-radius: 50% 50% 40% 40%;
-  background: rgba(255, 244, 232, 0.15);
+  top: 8%;
+  border-radius: 50% 50% 42% 42%;
+  border: 3px solid transparent;
+  background:
+    linear-gradient(145deg, var(--copper-1), var(--copper-3) 55%, var(--copper-4)) padding-box,
+    linear-gradient(145deg, #ffe0c2, var(--copper-4)) border-box;
+  box-shadow: inset 0 0 10px rgba(255, 220, 180, 0.35);
 }
 
 .gift3d__bow-loop--l {
   left: 0;
-  transform: rotate(-18deg);
+  width: 48%;
+  height: 62%;
+  transform: rotate(-22deg);
 }
 
 .gift3d__bow-loop--r {
   right: 0;
-  transform: rotate(18deg);
+  width: 48%;
+  height: 62%;
+  transform: rotate(22deg);
+}
+
+.gift3d__bow-loop--li {
+  left: 18%;
+  top: 18%;
+  width: 30%;
+  height: 42%;
+  transform: rotate(-12deg);
+  opacity: 0.92;
+}
+
+.gift3d__bow-loop--ri {
+  right: 18%;
+  top: 18%;
+  width: 30%;
+  height: 42%;
+  transform: rotate(12deg);
+  opacity: 0.92;
 }
 
 .gift3d__bow-knot {
   position: absolute;
   left: 50%;
-  top: 42%;
-  width: 22%;
+  top: 40%;
+  width: 24%;
   height: 28%;
   transform: translate(-50%, -50%);
-  background: #fff;
-  border-radius: 40%;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
+  border-radius: 42%;
+  background:
+    radial-gradient(circle at 35% 30%, var(--copper-1), var(--copper-3) 55%, var(--copper-4));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.gift3d__bow-tail {
+  position: absolute;
+  top: 52%;
+  width: 18%;
+  height: 42%;
+  background:
+    linear-gradient(180deg, var(--copper-2), var(--copper-4));
+  border-radius: 0 0 40% 40%;
+  opacity: 0.9;
+}
+
+.gift3d__bow-tail--l {
+  left: 32%;
+  transform: rotate(-18deg) skewX(-8deg);
+}
+
+.gift3d__bow-tail--r {
+  right: 32%;
+  transform: rotate(18deg) skewX(8deg);
+}
+
+.gift3d__hit {
+  position: absolute;
+  inset: 0 8% 12%;
+  z-index: 6;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.gift3d__hit:disabled {
+  cursor: progress;
+}
+
+.gift3d__hit:focus-visible {
+  outline: 2px solid var(--orange-soft);
+  outline-offset: 6px;
 }
 
 .gift3d__cta {
   position: relative;
   z-index: 5;
-  width: 86%;
-  border: 2px solid #fff4e8;
-  background: #0a0705;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: min(78%, 240px);
+  margin-top: -0.5rem;
+  border: 1.5px solid rgba(240, 201, 160, 0.75);
+  background: rgba(10, 10, 11, 0.88);
   color: #fff;
-  padding: 0.85rem 0.65rem;
+  padding: 0.8rem 1rem;
   font-family: var(--font-unbounded), "Trebuchet MS", sans-serif;
-  font-size: clamp(0.8rem, 2.6vw, 1.05rem);
+  font-size: clamp(0.78rem, 2.5vw, 1rem);
   font-weight: 700;
   letter-spacing: 0.01em;
   line-height: 1.2;
-  cursor: pointer;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
-  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
-.gift3d__cta:hover,
-.gift3d__cta:focus-visible {
-  background: #1a100c;
+.gift3d.is-hovered:not(.is-opening) .gift3d__cta,
+.gift3d:has(.gift3d__hit:focus-visible) .gift3d__cta {
   border-color: #fff;
+  background: rgba(20, 14, 10, 0.95);
   transform: translateY(-2px);
-  outline: none;
+}
+
+.gift3d.is-opening .gift3d__cta {
+  opacity: 0.55;
 }
 
 .gift3d__cta--static {
-  display: grid;
-  place-items: center;
-  pointer-events: none;
+  margin-top: 0.5rem;
 }
 
 .gift3d__shadow {
   position: absolute;
-  bottom: 8%;
+  bottom: 6%;
   left: 50%;
-  width: 58%;
-  height: 28px;
+  width: 62%;
+  height: 30px;
   transform: translateX(-50%);
-  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.45), transparent 70%);
-  filter: blur(4px);
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.55), transparent 70%);
+  filter: blur(5px);
   pointer-events: none;
+  transition: width 0.85s ease, opacity 0.85s ease;
 }
 
-/* —— Amount boxes —— */
+.gift3d.is-opening .gift3d__shadow {
+  width: 72%;
+  opacity: 0.85;
+}
+
+/* —— Amount boxes (premium CSS 3D, scaled) —— */
 .amounts-grid {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: center;
-  gap: 1.25rem 1rem;
+  gap: 1.75rem 1.25rem;
 }
 
 .amount-box {
+  --box: 90px;
+  --depth: 90px;
+  --h: 64px;
+  --lid-h: 18px;
+  --copper-1: #f0c9a0;
+  --copper-2: #d4926a;
+  --copper-3: #b86b45;
+  --copper-4: #8a4528;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.55rem;
+  gap: 0.75rem;
   text-align: center;
   transition: transform 0.25s ease;
   animation: amount-shine 5s ease-in-out infinite;
 }
 
 .amount-box:hover {
-  transform: translateY(-6px) scale(1.03);
+  transform: translateY(-8px) scale(1.04);
 }
 
-.amount-box__cube {
+.amount-box:hover .amount-box__lid {
+  transform: translate3d(0, -55%, 0) rotateX(-14deg);
+}
+
+.amount-box__stage {
   position: relative;
-  width: 72%;
-  aspect-ratio: 1;
+  width: 100%;
+  height: calc(var(--h) + var(--lid-h) + 72px);
+  display: grid;
+  place-items: center;
+  perspective: 800px;
+}
+
+.amount-box__glow {
+  position: absolute;
+  inset: 16% 10% 10%;
+  background: radial-gradient(circle, rgba(212, 146, 106, 0.4), transparent 68%);
+  filter: blur(14px);
+  pointer-events: none;
+}
+
+.amount-box__spark {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  z-index: 4;
+  background: radial-gradient(circle, #fff 0%, rgba(255, 176, 107, 0.9) 40%, transparent 70%);
+  clip-path: polygon(
+    50% 0%,
+    58% 38%,
+    100% 50%,
+    58% 62%,
+    50% 100%,
+    42% 62%,
+    0% 50%,
+    42% 38%
+  );
+  animation: spark-twinkle 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.amount-box__spark--a { top: 18%; left: 20%; }
+.amount-box__spark--b {
+  top: 30%;
+  right: 16%;
+  width: 8px;
+  height: 8px;
+  animation-delay: 0.8s;
+}
+
+.amount-box__scene {
+  position: relative;
+  width: var(--box);
+  height: var(--h);
   transform-style: preserve-3d;
-  transform: rotateX(-18deg) rotateY(28deg);
+  transform: rotateX(-22deg) rotateY(28deg);
 }
 
 .amount-box__face {
   position: absolute;
-  inset: 18% 12% 8% 18%;
+  display: block;
+  backface-visibility: hidden;
+}
+
+.amount-box__body {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
 }
 
 .amount-box__front {
-  background: linear-gradient(160deg, #ff9a4d, #ff6a00 55%, #c74300);
-  box-shadow: 6px 8px 0 #1a100c;
+  width: var(--box);
+  height: var(--h);
+  left: 0;
+  top: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 28%),
+    linear-gradient(145deg, #2a2a2c, #0a0a0b);
+  transform: translateZ(calc(var(--depth) / 2));
 }
 
-.amount-box__side {
-  inset: 18% 8% 8% auto;
-  width: 18%;
-  background: #2a160c;
-  transform: skewY(-28deg);
-  transform-origin: left;
+.amount-box__right {
+  width: var(--depth);
+  height: var(--h);
+  top: 0;
+  left: calc((var(--box) - var(--depth)) / 2);
+  background: linear-gradient(200deg, #242426, #080809);
+  transform: rotateY(90deg) translateZ(calc(var(--box) / 2));
+}
+
+.amount-box__top,
+.amount-box__bottom {
+  width: var(--box);
+  height: var(--depth);
+  left: 0;
+  top: calc((var(--h) - var(--depth)) / 2);
 }
 
 .amount-box__top {
-  inset: 8% 12% auto 18%;
-  height: 18%;
-  background: #ffb06b;
-  transform: skewX(-32deg);
-  transform-origin: bottom;
+  background: linear-gradient(135deg, #1a120e, #0a0705);
+  transform: rotateX(90deg) translateZ(calc(var(--h) / 2));
+}
+
+.amount-box__bottom {
+  background: #050506;
+  transform: rotateX(-90deg) translateZ(calc(var(--h) / 2));
+}
+
+.amount-box__ribbon-face {
+  position: absolute;
+  left: 42%;
+  top: 0;
+  width: 16%;
+  height: 100%;
+  background:
+    linear-gradient(90deg, var(--copper-4), var(--copper-1) 45%, var(--copper-3));
+  box-shadow: 0 0 6px rgba(184, 107, 69, 0.3);
 }
 
 .amount-box__lid {
   position: absolute;
-  left: 14%;
-  right: 8%;
-  top: 2%;
-  height: 18%;
-  background: linear-gradient(90deg, #ffb06b, #ff6a00);
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+  left: -3%;
+  top: 0;
+  width: 106%;
+  height: var(--lid-h);
+  transform-style: preserve-3d;
+  transform-origin: center top;
+  transform: translate3d(0, -55%, 0) rotateX(0deg);
+  transition: transform 0.35s ease;
+  z-index: 2;
 }
 
-.amount-box__ribbon {
+.amount-box__lid-front {
+  width: 100%;
+  height: var(--lid-h);
+  left: 0;
+  top: 0;
+  background: linear-gradient(180deg, var(--copper-1), var(--copper-4));
+  transform: translateZ(calc(var(--depth) / 2 + 4px));
+}
+
+.amount-box__lid-right {
+  width: calc(var(--depth) + 8px);
+  height: var(--lid-h);
+  top: 0;
+  left: calc((100% - var(--depth) - 8px) / 2);
+  background: linear-gradient(180deg, var(--copper-2), var(--copper-4));
+  transform: rotateY(90deg) translateZ(calc(var(--box) / 2 + 2px));
+}
+
+.amount-box__lid-top {
+  width: calc(100% + 2px);
+  height: calc(var(--depth) + 8px);
+  left: -1px;
+  top: calc((var(--lid-h) - var(--depth) - 8px) / 2);
+  background:
+    linear-gradient(145deg, #f6d7b8 0%, var(--copper-2) 45%, var(--copper-3) 100%);
+  transform: rotateX(90deg) translateZ(calc(var(--lid-h) / 2));
+  overflow: hidden;
+}
+
+.amount-box__ribbon-x,
+.amount-box__ribbon-y {
   position: absolute;
-  left: 44%;
-  top: 10%;
-  bottom: 10%;
-  width: 12%;
-  background: rgba(255, 244, 232, 0.9);
-  z-index: 1;
+  background: linear-gradient(90deg, #7a3a20, var(--copper-1) 45%, #7a3a20);
+}
+
+.amount-box__ribbon-x {
+  left: 42%;
+  top: 0;
+  width: 16%;
+  height: 100%;
+}
+
+.amount-box__ribbon-y {
+  left: 0;
+  top: 42%;
+  width: 100%;
+  height: 16%;
+  background: linear-gradient(180deg, #7a3a20, var(--copper-1) 45%, #7a3a20);
+}
+
+.amount-box__bow {
+  position: absolute;
+  left: 50%;
+  top: -35%;
+  width: 34%;
+  height: 70%;
+  transform: translateX(-50%) translateZ(calc(var(--depth) / 2 + 14px));
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, var(--copper-1), var(--copper-3) 55%, var(--copper-4));
+  box-shadow:
+    -9px 3px 0 -2px var(--copper-3),
+    9px 3px 0 -2px var(--copper-3),
+    0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.amount-box__shadow {
+  position: absolute;
+  bottom: 6%;
+  left: 50%;
+  width: 58%;
+  height: 14px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.42), transparent 70%);
+  filter: blur(3px);
+  pointer-events: none;
 }
 
 .amount-box__value {
