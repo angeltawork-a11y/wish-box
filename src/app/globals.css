@@ -154,11 +154,11 @@ select {
 }
 
 .gift3d--hero {
-  --box: min(58vw, 260px);
-  --depth: min(58vw, 260px);
-  --h: min(42vw, 180px);
+  --box: min(56vw, 250px);
+  --depth: min(56vw, 250px);
+  --h: min(40vw, 172px);
   --lid-h: min(12vw, 52px);
-  min-height: min(70vw, 420px);
+  min-height: min(72vw, 440px);
 }
 
 .gift3d--compact {
@@ -225,6 +225,8 @@ select {
     linear-gradient(160deg, #ff9a4d 0%, #ff6a00 48%, #c74300 100%);
   transform: translateZ(calc(var(--depth) / 2));
   box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.18);
+  align-items: end;
+  padding-bottom: 12%;
 }
 
 .gift3d__back {
@@ -277,19 +279,20 @@ select {
 }
 
 .gift3d__ribbon--v {
-  width: 18%;
-  height: var(--h);
-  left: 41%;
+  width: 14%;
+  height: 28%;
+  left: 43%;
   top: 0;
   transform: translateZ(calc(var(--depth) / 2 + 1px));
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+  /* Stops above the CTA so the face label stays readable */
 }
 
 .gift3d__ribbon--h {
   width: var(--box);
-  height: 16%;
+  height: 12%;
   left: 0;
-  top: 42%;
+  top: 10%;
   transform: translateZ(calc(var(--depth) / 2 + 1px));
 }
 
@@ -403,26 +406,27 @@ select {
 
 .gift3d__cta {
   position: relative;
-  z-index: 4;
-  width: 78%;
-  border: 1.5px solid rgba(255, 244, 232, 0.85);
-  background: rgba(10, 7, 5, 0.42);
+  z-index: 5;
+  width: 86%;
+  border: 2px solid #fff4e8;
+  background: #0a0705;
   color: #fff;
-  padding: 0.7rem 0.55rem;
+  padding: 0.85rem 0.65rem;
   font-family: var(--font-unbounded), "Trebuchet MS", sans-serif;
-  font-size: clamp(0.72rem, 2.4vw, 0.95rem);
-  font-weight: 600;
+  font-size: clamp(0.8rem, 2.6vw, 1.05rem);
+  font-weight: 700;
   letter-spacing: 0.01em;
+  line-height: 1.2;
   cursor: pointer;
-  backdrop-filter: blur(2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
   transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
 .gift3d__cta:hover,
 .gift3d__cta:focus-visible {
-  background: rgba(10, 7, 5, 0.62);
+  background: #1a100c;
   border-color: #fff;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   outline: none;
 }
 

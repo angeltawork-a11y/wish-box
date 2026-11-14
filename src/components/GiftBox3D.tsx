@@ -16,7 +16,7 @@ export function GiftBox3D({
   interactive = true,
 }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: -12, y: 22 });
+  const [tilt, setTilt] = useState({ x: -18, y: 32 });
   const [hovered, setHovered] = useState(false);
 
   function onPointerMove(e: PointerEvent<HTMLDivElement>) {
@@ -25,14 +25,14 @@ export function GiftBox3D({
     const px = (e.clientX - rect.left) / rect.width - 0.5;
     const py = (e.clientY - rect.top) / rect.height - 0.5;
     setTilt({
-      x: -12 - py * 16,
-      y: 22 + px * 22,
+      x: -18 - py * 14,
+      y: 32 + px * 20,
     });
   }
 
   function onPointerLeave() {
     setHovered(false);
-    setTilt({ x: -12, y: 22 });
+    setTilt({ x: -18, y: 32 });
   }
 
   const dim = size === "hero" ? "gift3d--hero" : "gift3d--compact";
@@ -87,8 +87,8 @@ export function GiftBox3D({
             <div className="gift3d__face gift3d__right" />
             <div className="gift3d__face gift3d__top" />
             <div className="gift3d__face gift3d__bottom" />
-            <div className="gift3d__ribbon gift3d__ribbon--v" />
-            <div className="gift3d__ribbon gift3d__ribbon--h" />
+            <div className="gift3d__ribbon gift3d__ribbon--v" aria-hidden="true" />
+            <div className="gift3d__ribbon gift3d__ribbon--h" aria-hidden="true" />
           </div>
         </div>
         <div className="gift3d__shadow" />

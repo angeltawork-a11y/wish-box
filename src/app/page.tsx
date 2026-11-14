@@ -9,8 +9,8 @@ export default function HomePage() {
 
   return (
     <main>
-      <section className="hero-atmosphere relative min-h-[100svh] overflow-hidden text-white">
-        <div className="pointer-events-none absolute inset-0">
+      <section className="hero-atmosphere relative min-h-[100svh] overflow-x-clip text-white">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-[var(--orange)]/30 blur-3xl" />
           <div className="absolute bottom-0 right-[-10%] h-80 w-80 rounded-full bg-[var(--orange-soft)]/25 blur-3xl" />
           <div className="hero-soft-light absolute inset-0" />
@@ -35,10 +35,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div
-            className="animate-rise w-full max-w-[440px]"
-            style={{ animationDelay: "0.12s" }}
-          >
+          <div className="w-full max-w-[480px]">
             <GiftBox3D
               label="Написать желание"
               onOpen={() => router.push("/amounts")}
