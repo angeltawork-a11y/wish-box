@@ -2,20 +2,27 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { formatAmountRub } from "@/lib/amounts";
 
 type WishGroup = {
   key: string;
   employeeName: string;
   employeeTitle: string;
   departmentName: string;
-  wishes: Array<{ id: number; text: string; createdAt: string }>;
+  wishes: Array<{
+    id: number;
+    text: string;
+    amount: number | null;
+    link: string;
+    hasImage: boolean;
+    createdAt: string;
+  }>;
 };
 
 export function AdminApp() {
   const [checking, setChecking] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const [isSample, setIsSample] = useState(false);
-  const [sampleHint, setSampleHint] = useState<string | null>(null);
+  const [configured, setConfigured] = useState(true);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [groups, setGroups] = useState<WishGroup[]>([]);
@@ -25,12 +32,10 @@ export function AdminApp() {
     const res = await fetch("/api/admin/session");
     const data = (await res.json()) as {
       authenticated: boolean;
-      isSample: boolean;
-      samplePasswordHint: string | null;
+      configured?: boolean;
     };
     setAuthenticated(data.authenticated);
-    setIsSample(data.isSample);
-    setSampleHint(data.samplePasswordHint);
+    setConfigured(data.configured !== false);
     setChecking(false);
     return data.authenticated;
   }, []);
@@ -64,14 +69,17 @@ export function AdminApp() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password }),
     });
-    const data = (await res.json()) as { error?: string; isSample?: boolean };
+    const data = (await res.json()) as { error?: string };
     if (!res.ok) {
+      if (res.status === 503) {
+        setConfigured(false);
+      }
       setError(data.error || "Ошибка входа");
       return;
     }
     setPassword("");
     setAuthenticated(true);
-    setIsSample(Boolean(data.isSample));
+    setConfigured(true);
     await loadWishes();
   }
 
@@ -100,15 +108,10 @@ export function AdminApp() {
           <p className="mt-3 text-[var(--ink)]/70">
             Список желаний доступен только с паролем руководителя.
           </p>
-          {isSample && sampleHint ? (
-            <p className="mt-4 border border-dashed border-[var(--orange)] bg-white px-4 py-3 text-sm">
-              Локально / без секрета используется{" "}
-              <strong>образец данных</strong>: пароль{" "}
-              <code className="font-semibold text-[var(--orange-deep)]">
-                {sampleHint}
-              </code>
-              . В публикации задайте{" "}
-              <code>ADMIN_PASSWORD</code> в Secrets.
+          {!configured ? (
+            <p className="mt-4 border border-dashed border-[var(--line)] bg-white px-4 py-3 text-sm text-[var(--ink)]/70">
+              Админ-панель не настроена: задайте переменную окружения{" "}
+              <code>ADMIN_PASSWORD</code>.
             </p>
           ) : null}
           <form onSubmit={onLogin} className="mt-8 space-y-4">
@@ -164,13 +167,6 @@ export function AdminApp() {
       </header>
 
       <div className="mx-auto max-w-5xl px-5 py-10 sm:px-10">
-        {isSample ? (
-          <p className="mb-6 text-sm text-[var(--ink)]/60">
-            Сейчас активен образец пароля для локальной разработки. В production
-            задайте ADMIN_PASSWORD через Secrets.
-          </p>
-        ) : null}
-
         {loadingWishes ? <p>Загружаем…</p> : null}
 
         {!loadingWishes && groups.length === 0 ? (
@@ -196,12 +192,38 @@ export function AdminApp() {
                         {person.employeeTitle}
                       </p>
                     ) : null}
-                    <ul className="mt-3 space-y-3">
+                    <ul className="mt-3 space-y-4">
                       {person.wishes.map((w) => (
-                        <li key={w.id} className="border-t border-[var(--line)] pt-3 first:border-0 first:pt-0">
+                        <li
+                          key={w.id}
+                          className="border-t border-[var(--line)] pt-3 first:border-0 first:pt-0"
+                        >
+                          {w.amount != null ? (
+                            <p className="mb-1 text-sm font-semibold text-[var(--orange-deep)]">
+                              {formatAmountRub(w.amount)}
+                            </p>
+                          ) : null}
                           <p className="whitespace-pre-wrap leading-relaxed">
                             {w.text}
                           </p>
+                          {w.link ? (
+                            <a
+                              href={w.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-2 inline-block break-all text-sm text-[var(--orange-deep)] underline"
+                            >
+                              {w.link}
+                            </a>
+                          ) : null}
+                          {w.hasImage ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={`/api/wishes/${w.id}/image`}
+                              alt="Вложение к желанию"
+                              className="mt-3 max-h-48 border border-[var(--line)] object-contain"
+                            />
+                          ) : null}
                           <time className="mt-1 block text-xs text-[var(--ink)]/45">
                             {new Date(w.createdAt).toLocaleString("ru-RU")}
                           </time>

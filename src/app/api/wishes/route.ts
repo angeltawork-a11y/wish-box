@@ -1,33 +1,73 @@
 import { NextResponse } from "next/server";
+import { isWishAmount } from "@/lib/amounts";
 import { ensureSeeded } from "@/lib/seed";
 import { sql } from "@/lib/db";
+import {
+  clientIp,
+  rateLimit,
+  rateLimitedResponse,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+
+function isSafeHttpUrl(value: string): boolean {
+  if (value === "") return true;
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
+  const limited = rateLimit(`wish-submit:${clientIp(request)}`, 10, 60_000);
+  if (!limited.ok) {
+    return rateLimitedResponse(
+      "Слишком много отправок. Подождите минуту и попробуйте снова.",
+      limited.retryAfterSec,
+    );
+  }
+
   await ensureSeeded();
 
-  let body: {
-    name?: string;
-    title?: string;
-    department?: string;
-    wish?: string;
-    employeeId?: number | null;
-  };
+  let form: FormData;
   try {
-    body = await request.json();
+    form = await request.formData();
   } catch {
     return NextResponse.json({ error: "Некорректный запрос" }, { status: 400 });
   }
 
-  const name = (body.name ?? "").trim();
-  const title = (body.title ?? "").trim();
-  const wish = (body.wish ?? "").trim();
-  let department = (body.department ?? "").trim();
+  const name = String(form.get("name") ?? "").trim();
+  const title = String(form.get("title") ?? "").trim();
+  const wish = String(form.get("wish") ?? "").trim();
+  let department = String(form.get("department") ?? "").trim();
+  const link = String(form.get("link") ?? "").trim();
+  const amountRaw = Number(form.get("amount"));
+  const employeeRaw = form.get("employeeId");
   let employeeId =
-    typeof body.employeeId === "number" && Number.isFinite(body.employeeId)
-      ? body.employeeId
+    employeeRaw != null && String(employeeRaw) !== ""
+      ? Number(employeeRaw)
       : null;
+  if (employeeId != null && !Number.isFinite(employeeId)) {
+    employeeId = null;
+  }
+
+  if (!isWishAmount(amountRaw)) {
+    return NextResponse.json(
+      { error: "Выберите допустимую сумму" },
+      { status: 400 },
+    );
+  }
+  const amount = amountRaw;
 
   if (name.length < 2) {
     return NextResponse.json(
@@ -47,6 +87,41 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  if (link.length > 2000 || !isSafeHttpUrl(link)) {
+    return NextResponse.json(
+      { error: "Укажите корректную ссылку http(s)" },
+      { status: 400 },
+    );
+  }
+
+  let imageData: Buffer | null = null;
+  let imageMime: string | null = null;
+  let imageName: string | null = null;
+  const imageEntry = form.get("image");
+  if (imageEntry instanceof File && imageEntry.size > 0) {
+    if (!ALLOWED_TYPES.has(imageEntry.type)) {
+      return NextResponse.json(
+        { error: "Допустимы только JPEG, PNG, WebP или GIF" },
+        { status: 400 },
+      );
+    }
+    if (imageEntry.size > MAX_IMAGE_BYTES) {
+      return NextResponse.json(
+        { error: "Изображение не больше 5 МБ" },
+        { status: 400 },
+      );
+    }
+    const buf = Buffer.from(await imageEntry.arrayBuffer());
+    if (buf.byteLength > MAX_IMAGE_BYTES) {
+      return NextResponse.json(
+        { error: "Изображение не больше 5 МБ" },
+        { status: 400 },
+      );
+    }
+    imageData = buf;
+    imageMime = imageEntry.type;
+    imageName = imageEntry.name.slice(0, 200) || "image";
+  }
 
   if (employeeId != null) {
     const match = await sql<{
@@ -63,9 +138,6 @@ export async function POST(request: Request) {
     );
     if (match[0]) {
       department = match[0].department_name;
-      if (!title) {
-        // keep submitted title if provided
-      }
     } else {
       employeeId = null;
     }
@@ -97,10 +169,24 @@ export async function POST(request: Request) {
   }
 
   const inserted = await sql<{ id: number }>(
-    `INSERT INTO wishes (employee_id, employee_name, employee_title, department_name, wish_text)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO wishes (
+       employee_id, employee_name, employee_title, department_name,
+       wish_text, amount, wish_link, image_data, image_mime, image_name
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING id`,
-    [employeeId, name, title, department, wish],
+    [
+      employeeId,
+      name,
+      title,
+      department,
+      wish,
+      amount,
+      link,
+      imageData,
+      imageMime,
+      imageName,
+    ],
   );
 
   return NextResponse.json({ ok: true, id: inserted[0]?.id });

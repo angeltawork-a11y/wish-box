@@ -12,9 +12,14 @@ export async function GET() {
   }
   await ensureSeeded();
 
-  const wishes = await sql<Wish>(
+  const wishes = await sql<
+    Wish & { has_image: boolean }
+  >(
     `SELECT id, employee_id, employee_name, employee_title, department_name,
-            wish_text, created_at::text AS created_at
+            wish_text, amount, wish_link,
+            (image_data IS NOT NULL) AS has_image,
+            image_mime,
+            created_at::text AS created_at
      FROM wishes
      ORDER BY department_name ASC, employee_name ASC, created_at DESC`,
   );
@@ -24,7 +29,14 @@ export async function GET() {
     employeeName: string;
     employeeTitle: string;
     departmentName: string;
-    wishes: Array<{ id: number; text: string; createdAt: string }>;
+    wishes: Array<{
+      id: number;
+      text: string;
+      amount: number | null;
+      link: string;
+      hasImage: boolean;
+      createdAt: string;
+    }>;
   };
 
   const groups = new Map<string, Group>();
@@ -44,6 +56,9 @@ export async function GET() {
     group.wishes.push({
       id: w.id,
       text: w.wish_text,
+      amount: w.amount,
+      link: w.wish_link || "",
+      hasImage: Boolean(w.has_image),
       createdAt: w.created_at,
     });
   }

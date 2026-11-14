@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
+import { requireAdminSession } from "@/lib/auth";
 import { ensureSeeded } from "@/lib/seed";
 import { sql } from "@/lib/db";
 import type { Employee, StaffTree } from "@/lib/types";
 
 export const runtime = "nodejs";
 
+/** Full staff directory — admin only. */
 export async function GET() {
+  if (!(await requireAdminSession())) {
+    return NextResponse.json({ error: "Требуется вход" }, { status: 401 });
+  }
+
   await ensureSeeded();
   const departments = await sql<{ id: number; name: string }>(
     "SELECT id, name FROM departments ORDER BY name ASC",
