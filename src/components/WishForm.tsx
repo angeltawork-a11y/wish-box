@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { formatAmountRub, type WishAmount } from "@/lib/amounts";
 
 type Employee = {
   id: number;
@@ -11,16 +12,28 @@ type Employee = {
 };
 
 type Props = {
+  amount: WishAmount;
   onSuccess: () => void;
 };
 
-export function WishForm({ onSuccess }: Props) {
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+
+export function WishForm({ amount, onSuccess }: Props) {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [department, setDepartment] = useState("");
   const [employeeId, setEmployeeId] = useState<number | null>(null);
   const [wish, setWish] = useState("");
+  const [link, setLink] = useState("");
+  const [image, setImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -38,6 +51,16 @@ export function WishForm({ onSuccess }: Props) {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!image) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(image);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [image]);
 
   const suggestions = useMemo(() => {
     const q = name.trim().toLowerCase();
@@ -100,21 +123,43 @@ export function WishForm({ onSuccess }: Props) {
     }
   }
 
+  function onImageChange(file: File | null) {
+    setError("");
+    if (!file) {
+      setImage(null);
+      return;
+    }
+    if (!ALLOWED_TYPES.has(file.type)) {
+      setError("Допустимы только JPEG, PNG, WebP или GIF");
+      setImage(null);
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setError("Изображение не больше 5 МБ");
+      setImage(null);
+      return;
+    }
+    setImage(file);
+  }
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
     setLoading(true);
     try {
+      const form = new FormData();
+      form.set("name", name);
+      form.set("title", title);
+      form.set("department", department);
+      form.set("wish", wish);
+      form.set("amount", String(amount));
+      form.set("link", link);
+      if (employeeId != null) form.set("employeeId", String(employeeId));
+      if (image) form.set("image", image);
+
       const res = await fetch("/api/wishes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          title,
-          department,
-          wish,
-          employeeId,
-        }),
+        body: form,
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
@@ -131,6 +176,15 @@ export function WishForm({ onSuccess }: Props) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
+      <div className="border border-[var(--line)] bg-[var(--orange-mist)] px-4 py-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--orange-deep)]">
+          Сумма желания
+        </p>
+        <p className="display mt-1 text-2xl text-[var(--ink)]">
+          {formatAmountRub(amount)}
+        </p>
+      </div>
+
       <div className="relative">
         <label className="mb-2 block text-sm font-semibold tracking-wide">
           Имя
@@ -200,6 +254,43 @@ export function WishForm({ onSuccess }: Props) {
           placeholder="Чего хотите для себя, команды или компании…"
           required
         />
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-semibold tracking-wide">
+          Ссылка (необязательно)
+        </label>
+        <input
+          className="field"
+          type="url"
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          placeholder="https://…"
+          inputMode="url"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-semibold tracking-wide">
+          Картинка (необязательно)
+        </label>
+        <input
+          className="field"
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          onChange={(e) => onImageChange(e.target.files?.[0] ?? null)}
+        />
+        <p className="mt-1 text-xs text-[var(--ink)]/55">
+          JPEG, PNG, WebP или GIF · до 5 МБ
+        </p>
+        {previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={previewUrl}
+            alt="Превью вложения"
+            className="mt-3 max-h-40 border border-[var(--line)] object-contain"
+          />
+        ) : null}
       </div>
 
       {error ? (

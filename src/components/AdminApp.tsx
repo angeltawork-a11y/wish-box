@@ -2,13 +2,21 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { formatAmountRub } from "@/lib/amounts";
 
 type WishGroup = {
   key: string;
   employeeName: string;
   employeeTitle: string;
   departmentName: string;
-  wishes: Array<{ id: number; text: string; createdAt: string }>;
+  wishes: Array<{
+    id: number;
+    text: string;
+    amount: number | null;
+    link: string;
+    hasImage: boolean;
+    createdAt: string;
+  }>;
 };
 
 export function AdminApp() {
@@ -184,12 +192,38 @@ export function AdminApp() {
                         {person.employeeTitle}
                       </p>
                     ) : null}
-                    <ul className="mt-3 space-y-3">
+                    <ul className="mt-3 space-y-4">
                       {person.wishes.map((w) => (
-                        <li key={w.id} className="border-t border-[var(--line)] pt-3 first:border-0 first:pt-0">
+                        <li
+                          key={w.id}
+                          className="border-t border-[var(--line)] pt-3 first:border-0 first:pt-0"
+                        >
+                          {w.amount != null ? (
+                            <p className="mb-1 text-sm font-semibold text-[var(--orange-deep)]">
+                              {formatAmountRub(w.amount)}
+                            </p>
+                          ) : null}
                           <p className="whitespace-pre-wrap leading-relaxed">
                             {w.text}
                           </p>
+                          {w.link ? (
+                            <a
+                              href={w.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-2 inline-block break-all text-sm text-[var(--orange-deep)] underline"
+                            >
+                              {w.link}
+                            </a>
+                          ) : null}
+                          {w.hasImage ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={`/api/wishes/${w.id}/image`}
+                              alt="Вложение к желанию"
+                              className="mt-3 max-h-48 border border-[var(--line)] object-contain"
+                            />
+                          ) : null}
                           <time className="mt-1 block text-xs text-[var(--ink)]/45">
                             {new Date(w.createdAt).toLocaleString("ru-RU")}
                           </time>

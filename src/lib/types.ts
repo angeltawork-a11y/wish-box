@@ -18,6 +18,10 @@ export type Wish = {
   employee_title: string;
   department_name: string;
   wish_text: string;
+  amount: number | null;
+  wish_link: string;
+  has_image?: boolean;
+  image_mime?: string | null;
   created_at: string;
 };
 

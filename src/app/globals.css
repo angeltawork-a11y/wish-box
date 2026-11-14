@@ -62,28 +62,6 @@ select {
   color: var(--white);
 }
 
-@keyframes float-box {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-1.5deg);
-  }
-  50% {
-    transform: translateY(-14px) rotate(1.5deg);
-  }
-}
-
-@keyframes sparkle {
-  0%,
-  100% {
-    opacity: 0.25;
-    transform: scale(0.85);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.15);
-  }
-}
-
 @keyframes rise-in {
   from {
     opacity: 0;
@@ -95,31 +73,51 @@ select {
   }
 }
 
-@keyframes lid-open {
+@keyframes soft-light-drift {
   0%,
   100% {
-    transform: rotateX(0deg);
+    opacity: 0.45;
+    transform: translate3d(-2%, -1%, 0) scale(1);
   }
   50% {
-    transform: rotateX(-28deg);
+    opacity: 0.75;
+    transform: translate3d(3%, 2%, 0) scale(1.05);
   }
 }
 
-.animate-float-box {
-  animation: float-box 5.5s ease-in-out infinite;
+@keyframes lid-hint {
+  0%,
+  100% {
+    transform: translate3d(0, -52%, 0) rotateX(0deg);
+  }
+  45%,
+  55% {
+    transform: translate3d(0, -52%, 0) rotateX(-26deg);
+  }
 }
 
-.animate-sparkle {
-  animation: sparkle 2.8s ease-in-out infinite;
+@keyframes gift-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes amount-shine {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.08);
+  }
 }
 
 .animate-rise {
   animation: rise-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.animate-lid {
-  transform-origin: bottom center;
-  animation: lid-open 6s ease-in-out infinite;
 }
 
 .hero-atmosphere {
@@ -127,6 +125,410 @@ select {
     radial-gradient(ellipse 80% 55% at 70% 20%, rgba(255, 106, 0, 0.35), transparent 60%),
     radial-gradient(ellipse 50% 40% at 15% 80%, rgba(255, 154, 77, 0.28), transparent 55%),
     linear-gradient(160deg, #120d0a 0%, #1c120c 42%, #2a160c 70%, #3d1d0a 100%);
+}
+
+.hero-soft-light {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255, 176, 107, 0.35), transparent 42%),
+    radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.08), transparent 35%);
+  animation: soft-light-drift 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.amounts-atmosphere {
+  background:
+    radial-gradient(ellipse 70% 80% at 10% 0%, rgba(255, 106, 0, 0.12), transparent 55%),
+    linear-gradient(180deg, #fff7f0 0%, #ffffff 100%);
+}
+
+/* —— CSS 3D gift box —— */
+.gift3d {
+  --box: 220px;
+  --depth: 220px;
+  --h: 160px;
+  --lid-h: 48px;
+  perspective: 900px;
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.gift3d--hero {
+  --box: min(58vw, 260px);
+  --depth: min(58vw, 260px);
+  --h: min(42vw, 180px);
+  --lid-h: min(12vw, 52px);
+  min-height: min(70vw, 420px);
+}
+
+.gift3d--compact {
+  --box: 120px;
+  --depth: 120px;
+  --h: 88px;
+  --lid-h: 28px;
+}
+
+.gift3d__stage {
+  position: relative;
+  width: calc(var(--box) * 1.55);
+  height: calc(var(--h) + var(--lid-h) + 120px);
+  display: grid;
+  place-items: center;
+  animation: gift-float 5.5s ease-in-out infinite;
+}
+
+.gift3d__glow {
+  position: absolute;
+  inset: 18% 10% 8%;
+  background: radial-gradient(circle, rgba(255, 154, 77, 0.55), transparent 68%);
+  filter: blur(28px);
+  animation: soft-light-drift 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.gift3d__scene {
+  position: relative;
+  width: var(--box);
+  height: var(--h);
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-x, -12deg)) rotateY(var(--tilt-y, 22deg));
+  transition: transform 0.25s ease-out;
+}
+
+.gift3d.is-hovered .gift3d__scene {
+  transition: transform 0.08s linear;
+}
+
+.gift3d__face {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  backface-visibility: hidden;
+}
+
+.gift3d__body {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.gift3d__front,
+.gift3d__back {
+  width: var(--box);
+  height: var(--h);
+  left: 0;
+  top: 0;
+}
+
+.gift3d__front {
+  background:
+    linear-gradient(160deg, #ff9a4d 0%, #ff6a00 48%, #c74300 100%);
+  transform: translateZ(calc(var(--depth) / 2));
+  box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.18);
+}
+
+.gift3d__back {
+  background: linear-gradient(180deg, #3a1a0a, #1a0d07);
+  transform: rotateY(180deg) translateZ(calc(var(--depth) / 2));
+}
+
+.gift3d__left,
+.gift3d__right {
+  width: var(--depth);
+  height: var(--h);
+  top: 0;
+  left: calc((var(--box) - var(--depth)) / 2);
+}
+
+.gift3d__left {
+  background: linear-gradient(180deg, #2a140a, #140a06);
+  transform: rotateY(-90deg) translateZ(calc(var(--box) / 2));
+}
+
+.gift3d__right {
+  background: linear-gradient(180deg, #ff8a2a, #e24f00);
+  transform: rotateY(90deg) translateZ(calc(var(--box) / 2));
+}
+
+.gift3d__top,
+.gift3d__bottom {
+  width: var(--box);
+  height: var(--depth);
+  left: 0;
+  top: calc((var(--h) - var(--depth)) / 2);
+}
+
+.gift3d__top {
+  background: linear-gradient(135deg, #1a100c, #0a0705);
+  transform: rotateX(90deg) translateZ(calc(var(--h) / 2));
+}
+
+.gift3d__bottom {
+  background: #0a0705;
+  transform: rotateX(-90deg) translateZ(calc(var(--h) / 2));
+}
+
+.gift3d__ribbon--v,
+.gift3d__ribbon--h {
+  position: absolute;
+  background: linear-gradient(90deg, #fff4e8, #ffe0c2, #fff4e8);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.gift3d__ribbon--v {
+  width: 18%;
+  height: var(--h);
+  left: 41%;
+  top: 0;
+  transform: translateZ(calc(var(--depth) / 2 + 1px));
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+.gift3d__ribbon--h {
+  width: var(--box);
+  height: 16%;
+  left: 0;
+  top: 42%;
+  transform: translateZ(calc(var(--depth) / 2 + 1px));
+}
+
+.gift3d__lid {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--box);
+  height: var(--lid-h);
+  transform-style: preserve-3d;
+  transform-origin: top center;
+  transform: translate3d(0, -52%, 0) rotateX(0deg);
+  animation: lid-hint 5.8s ease-in-out infinite;
+  z-index: 3;
+}
+
+.gift3d.is-hovered .gift3d__lid {
+  animation-play-state: paused;
+  transform: translate3d(0, -52%, 0) rotateX(-32deg);
+  transition: transform 0.35s ease;
+}
+
+.gift3d__lid-front,
+.gift3d__lid-back {
+  width: var(--box);
+  height: var(--lid-h);
+  left: 0;
+  top: 0;
+}
+
+.gift3d__lid-front {
+  background: linear-gradient(180deg, #ffb06b, #ff6a00);
+  transform: translateZ(calc(var(--depth) / 2 + 4px));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.gift3d__lid-back {
+  background: #1a100c;
+  transform: rotateY(180deg) translateZ(calc(var(--depth) / 2 + 4px));
+}
+
+.gift3d__lid-left,
+.gift3d__lid-right {
+  width: calc(var(--depth) + 8px);
+  height: var(--lid-h);
+  top: 0;
+  left: calc((var(--box) - var(--depth) - 8px) / 2);
+}
+
+.gift3d__lid-left {
+  background: #2a160c;
+  transform: rotateY(-90deg) translateZ(calc(var(--box) / 2 + 2px));
+}
+
+.gift3d__lid-right {
+  background: #e24f00;
+  transform: rotateY(90deg) translateZ(calc(var(--box) / 2 + 2px));
+}
+
+.gift3d__lid-top {
+  width: calc(var(--box) + 8px);
+  height: calc(var(--depth) + 8px);
+  left: -4px;
+  top: calc((var(--lid-h) - var(--depth) - 8px) / 2);
+  background:
+    linear-gradient(145deg, #ff9a4d, #ff6a00 55%, #c74300);
+  transform: rotateX(90deg) translateZ(calc(var(--lid-h) / 2));
+}
+
+.gift3d__bow {
+  position: absolute;
+  left: 50%;
+  top: -18%;
+  width: 42%;
+  height: 70%;
+  transform: translateX(-50%) translateZ(calc(var(--depth) / 2 + 18px));
+  pointer-events: none;
+}
+
+.gift3d__bow-loop {
+  position: absolute;
+  top: 10%;
+  width: 48%;
+  height: 70%;
+  border: 4px solid #fff4e8;
+  border-radius: 50% 50% 40% 40%;
+  background: rgba(255, 244, 232, 0.15);
+}
+
+.gift3d__bow-loop--l {
+  left: 0;
+  transform: rotate(-18deg);
+}
+
+.gift3d__bow-loop--r {
+  right: 0;
+  transform: rotate(18deg);
+}
+
+.gift3d__bow-knot {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 22%;
+  height: 28%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 40%;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
+}
+
+.gift3d__cta {
+  position: relative;
+  z-index: 4;
+  width: 78%;
+  border: 1.5px solid rgba(255, 244, 232, 0.85);
+  background: rgba(10, 7, 5, 0.42);
+  color: #fff;
+  padding: 0.7rem 0.55rem;
+  font-family: var(--font-unbounded), "Trebuchet MS", sans-serif;
+  font-size: clamp(0.72rem, 2.4vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.gift3d__cta:hover,
+.gift3d__cta:focus-visible {
+  background: rgba(10, 7, 5, 0.62);
+  border-color: #fff;
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.gift3d__cta--static {
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.gift3d__shadow {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  width: 58%;
+  height: 28px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.45), transparent 70%);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* —— Amount boxes —— */
+.amounts-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.25rem 1rem;
+}
+
+.amount-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  text-align: center;
+  transition: transform 0.25s ease;
+  animation: amount-shine 5s ease-in-out infinite;
+}
+
+.amount-box:hover {
+  transform: translateY(-6px) scale(1.03);
+}
+
+.amount-box__cube {
+  position: relative;
+  width: 72%;
+  aspect-ratio: 1;
+  transform-style: preserve-3d;
+  transform: rotateX(-18deg) rotateY(28deg);
+}
+
+.amount-box__face {
+  position: absolute;
+  inset: 18% 12% 8% 18%;
+}
+
+.amount-box__front {
+  background: linear-gradient(160deg, #ff9a4d, #ff6a00 55%, #c74300);
+  box-shadow: 6px 8px 0 #1a100c;
+}
+
+.amount-box__side {
+  inset: 18% 8% 8% auto;
+  width: 18%;
+  background: #2a160c;
+  transform: skewY(-28deg);
+  transform-origin: left;
+}
+
+.amount-box__top {
+  inset: 8% 12% auto 18%;
+  height: 18%;
+  background: #ffb06b;
+  transform: skewX(-32deg);
+  transform-origin: bottom;
+}
+
+.amount-box__lid {
+  position: absolute;
+  left: 14%;
+  right: 8%;
+  top: 2%;
+  height: 18%;
+  background: linear-gradient(90deg, #ffb06b, #ff6a00);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.amount-box__ribbon {
+  position: absolute;
+  left: 44%;
+  top: 10%;
+  bottom: 10%;
+  width: 12%;
+  background: rgba(255, 244, 232, 0.9);
+  z-index: 1;
+}
+
+.amount-box__value {
+  font-family: var(--font-unbounded), "Trebuchet MS", sans-serif;
+  font-size: clamp(0.75rem, 2.2vw, 1rem);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.15;
 }
 
 .field {
