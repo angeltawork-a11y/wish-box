@@ -85,15 +85,9 @@ export function WishForm({ amount, onSuccess }: Props) {
     setLoading(true);
     try {
       const form = new FormData();
-      form.set("name", employee.name);
-      form.set("title", employee.title);
-      form.set("department", employee.department);
       form.set("wish", wish);
       form.set("amount", String(amount));
       form.set("link", link);
-      if (employee.employeeId != null) {
-        form.set("employeeId", String(employee.employeeId));
-      }
       if (image) form.set("image", image);
 
       const res = await fetch("/api/wishes", {
