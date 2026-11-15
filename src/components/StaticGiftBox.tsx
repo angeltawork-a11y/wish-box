@@ -41,7 +41,7 @@ export function StaticGiftBox({
   const content = (
     <>
       <Image
-        src="/hero-gift-box.png"
+        src="/hero-box.png"
         alt=""
         width={640}
         height={640}
