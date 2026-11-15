@@ -1,5 +1,6 @@
 import "server-only";
 
+import { normalizeEmail } from "./email";
 import { sql } from "./db";
 import { getStaffSeed } from "./staff-seed-data";
 
@@ -20,8 +21,13 @@ async function runSeed(): Promise<void> {
     "SELECT COUNT(*)::int AS count FROM departments",
   );
   const count = Number(rows[0]?.count ?? 0);
-  if (count > 0) return;
+  if (count === 0) {
+    await insertStaff();
+  }
+  await fillMissingEmails();
+}
 
+async function insertStaff(): Promise<void> {
   const staffSeed = getStaffSeed();
   for (const dept of staffSeed.departments) {
     const inserted = await sql<{ id: number }>(
@@ -32,8 +38,35 @@ async function runSeed(): Promise<void> {
     if (!departmentId) continue;
     for (const employee of dept.employees) {
       await sql(
-        "INSERT INTO employees (department_id, name, title) VALUES ($1, $2, $3)",
-        [departmentId, employee.name, employee.title],
+        "INSERT INTO employees (department_id, name, title, email) VALUES ($1, $2, $3, $4)",
+        [
+          departmentId,
+          employee.name,
+          employee.title,
+          normalizeEmail(employee.email ?? ""),
+        ],
+      );
+    }
+  }
+}
+
+/** Fill empty emails from the seed without overwriting addresses set in admin. */
+async function fillMissingEmails(): Promise<void> {
+  const staffSeed = getStaffSeed();
+  for (const dept of staffSeed.departments) {
+    for (const employee of dept.employees) {
+      const email = normalizeEmail(employee.email ?? "");
+      if (!email) continue;
+      await sql(
+        `UPDATE employees e
+         SET email = $1
+         FROM departments d
+         WHERE e.department_id = d.id
+           AND d.name = $2
+           AND LOWER(e.name) = LOWER($3)
+           AND LOWER(e.title) = LOWER($4)
+           AND (e.email IS NULL OR e.email = '')`,
+        [email, dept.name, employee.name, employee.title],
       );
     }
   }

@@ -77,7 +77,8 @@ function decode(token: string | undefined | null): EmployeeContext | null {
     if (typeof raw.employeeId === "number" && Number.isFinite(raw.employeeId)) {
       employeeId = raw.employeeId;
     }
-    return { name, title, department, employeeId };
+    const email = String(raw.email ?? "").trim().toLowerCase();
+    return { name, title, department, employeeId, email };
   } catch {
     return null;
   }
@@ -89,6 +90,7 @@ export function createEmployeeToken(ctx: EmployeeContext): string {
     title: ctx.title.trim(),
     department: ctx.department.trim(),
     employeeId: ctx.employeeId,
+    email: ctx.email.trim().toLowerCase(),
   });
 }
 

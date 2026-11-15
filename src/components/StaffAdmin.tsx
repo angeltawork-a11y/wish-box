@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 
-type Employee = { id: number; name: string; title: string };
+type Employee = { id: number; name: string; title: string; email: string };
 type Department = { id: number; name: string; employees: Employee[] };
 
 export function StaffAdmin() {
@@ -13,7 +13,7 @@ export function StaffAdmin() {
   const [newDept, setNewDept] = useState("");
   const [error, setError] = useState("");
   const [drafts, setDrafts] = useState<
-    Record<number, { name: string; title: string }>
+    Record<number, { name: string; title: string; email: string }>
   >({});
 
   const loadStaff = useCallback(async () => {
@@ -72,7 +72,7 @@ export function StaffAdmin() {
   }
 
   async function addEmployee(departmentId: number) {
-    const draft = drafts[departmentId] ?? { name: "", title: "" };
+    const draft = drafts[departmentId] ?? { name: "", title: "", email: "" };
     if (!draft.name.trim()) return;
     setError("");
     const res = await fetch("/api/admin/employees", {
@@ -82,6 +82,7 @@ export function StaffAdmin() {
         departmentId,
         name: draft.name,
         title: draft.title,
+        email: draft.email,
       }),
     });
     if (!res.ok) {
@@ -89,7 +90,10 @@ export function StaffAdmin() {
       setError(data.error || "Не удалось добавить");
       return;
     }
-    setDrafts((prev) => ({ ...prev, [departmentId]: { name: "", title: "" } }));
+    setDrafts((prev) => ({
+      ...prev,
+      [departmentId]: { name: "", title: "", email: "" },
+    }));
     await loadStaff();
   }
 
@@ -98,12 +102,13 @@ export function StaffAdmin() {
     departmentId: number,
     name: string,
     title: string,
+    email: string,
   ) {
     setError("");
     const res = await fetch("/api/admin/employees", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, departmentId, name, title }),
+      body: JSON.stringify({ id, departmentId, name, title, email }),
     });
     if (!res.ok) {
       const data = (await res.json()) as { error?: string };
@@ -209,7 +214,7 @@ export function StaffAdmin() {
               {dept.employees.map((emp) => (
                 <li
                   key={emp.id}
-                  className="grid gap-3 p-4 md:grid-cols-[1.2fr_1fr_auto]"
+                  className="grid gap-3 p-4 md:grid-cols-[1fr_0.8fr_1.2fr_auto]"
                 >
                   <input
                     className="field"
@@ -223,6 +228,14 @@ export function StaffAdmin() {
                     id={`title-${emp.id}`}
                     aria-label="Должность"
                   />
+                  <input
+                    className="field"
+                    defaultValue={emp.email}
+                    id={`email-${emp.id}`}
+                    aria-label="Почта"
+                    type="email"
+                    placeholder="name@company.ru"
+                  />
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -234,11 +247,15 @@ export function StaffAdmin() {
                         const titleEl = document.getElementById(
                           `title-${emp.id}`,
                         ) as HTMLInputElement | null;
+                        const emailEl = document.getElementById(
+                          `email-${emp.id}`,
+                        ) as HTMLInputElement | null;
                         void saveEmployee(
                           emp.id,
                           dept.id,
                           nameEl?.value ?? emp.name,
                           titleEl?.value ?? emp.title,
+                          emailEl?.value ?? emp.email,
                         );
                       }}
                     >
@@ -256,7 +273,7 @@ export function StaffAdmin() {
               ))}
             </ul>
 
-            <div className="grid gap-3 border-t border-[var(--line)] p-4 md:grid-cols-[1.2fr_1fr_auto]">
+            <div className="grid gap-3 border-t border-[var(--line)] p-4 md:grid-cols-[1fr_0.8fr_1.2fr_auto]">
               <input
                 className="field"
                 placeholder="Имя сотрудника"
@@ -267,6 +284,7 @@ export function StaffAdmin() {
                     [dept.id]: {
                       name: e.target.value,
                       title: prev[dept.id]?.title ?? "",
+                      email: prev[dept.id]?.email ?? "",
                     },
                   }))
                 }
@@ -281,6 +299,23 @@ export function StaffAdmin() {
                     [dept.id]: {
                       name: prev[dept.id]?.name ?? "",
                       title: e.target.value,
+                      email: prev[dept.id]?.email ?? "",
+                    },
+                  }))
+                }
+              />
+              <input
+                className="field"
+                type="email"
+                placeholder="Почта"
+                value={drafts[dept.id]?.email ?? ""}
+                onChange={(e) =>
+                  setDrafts((prev) => ({
+                    ...prev,
+                    [dept.id]: {
+                      name: prev[dept.id]?.name ?? "",
+                      title: prev[dept.id]?.title ?? "",
+                      email: e.target.value,
                     },
                   }))
                 }

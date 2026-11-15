@@ -1,6 +1,6 @@
 import "server-only";
 
-export type SeedEmployee = { name: string; title: string };
+export type SeedEmployee = { name: string; title: string; email?: string };
 export type SeedDepartment = { name: string; employees: SeedEmployee[] };
 
 /**
@@ -12,39 +12,75 @@ const DEMO_STAFF_SEED: { departments: SeedDepartment[] } = {
   departments: [
     {
       name: "Руководство",
-      employees: [{ name: "Пример Руководитель", title: "CEO" }],
+      employees: [
+        {
+          name: "Пример Руководитель",
+          title: "CEO",
+          email: "primer.ceo@example.com",
+        },
+      ],
     },
     {
       name: "Админ",
       employees: [
-        { name: "Пример Администратор", title: "админ-рук." },
-        { name: "Пример Документовед", title: "Администратор по документообороту" },
+        {
+          name: "Пример Администратор",
+          title: "админ-рук.",
+          email: "primer.admin@example.com",
+        },
+        {
+          name: "Пример Документовед",
+          title: "Администратор по документообороту",
+          email: "primer.docs@example.com",
+        },
       ],
     },
     {
       name: "IT",
-      employees: [{ name: "Пример IT", title: "IT специалист" }],
+      employees: [
+        {
+          name: "Пример IT",
+          title: "IT специалист",
+          email: "primer.it@example.com",
+        },
+      ],
     },
     {
       name: "HR",
-      employees: [{ name: "Пример HR", title: "рекрутер" }],
+      employees: [
+        { name: "Пример HR", title: "рекрутер", email: "primer.hr@example.com" },
+      ],
     },
     {
       name: "Продажи",
       employees: [
-        { name: "Пример РОП", title: "РОП" },
-        { name: "Пример МОП", title: "МОП" },
+        { name: "Пример РОП", title: "РОП", email: "primer.rop@example.com" },
+        { name: "Пример МОП", title: "МОП", email: "primer.mop@example.com" },
       ],
     },
     {
       name: "Маркетинг",
-      employees: [{ name: "Пример Маркетолог", title: "маркетолог" }],
+      employees: [
+        {
+          name: "Пример Маркетолог",
+          title: "маркетолог",
+          email: "primer.market@example.com",
+        },
+      ],
     },
     {
       name: "Производство",
       employees: [
-        { name: "Пример Куратор", title: "куратор" },
-        { name: "Пример Наставник", title: "наставник" },
+        {
+          name: "Пример Куратор",
+          title: "куратор",
+          email: "primer.curator@example.com",
+        },
+        {
+          name: "Пример Наставник",
+          title: "наставник",
+          email: "primer.mentor@example.com",
+        },
       ],
     },
   ],
@@ -62,6 +98,9 @@ function parseStaffSeedJson(raw: string): { departments: SeedDepartment[] } | nu
       }
       for (const emp of dept.employees) {
         if (!emp || typeof emp.name !== "string" || typeof emp.title !== "string") {
+          return null;
+        }
+        if (emp.email != null && typeof emp.email !== "string") {
           return null;
         }
       }

@@ -3,4 +3,5 @@ export type EmployeeContext = {
   title: string;
   department: string;
   employeeId: number | null;
+  email: string;
 };

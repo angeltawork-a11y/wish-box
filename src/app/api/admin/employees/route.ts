@@ -1,7 +1,17 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/auth";
+import { normalizeEmail } from "@/lib/email";
 import { ensureSeeded } from "@/lib/seed";
 import { sql } from "@/lib/db";
+
+function duplicateEmail(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "23505"
+  );
+}
 
 export const runtime = "nodejs";
 
@@ -11,7 +21,7 @@ export async function POST(request: Request) {
   }
   await ensureSeeded();
 
-  let body: { departmentId?: number; name?: string; title?: string };
+  let body: { departmentId?: number; name?: string; title?: string; email?: string };
   try {
     body = await request.json();
   } catch {
@@ -21,25 +31,40 @@ export async function POST(request: Request) {
   const departmentId = body.departmentId;
   const name = (body.name ?? "").trim();
   const title = (body.title ?? "").trim();
+  const email = normalizeEmail(body.email ?? "");
   if (!departmentId || name.length < 1) {
     return NextResponse.json(
       { error: "Укажите отдел и имя сотрудника" },
       { status: 400 },
     );
   }
+  if ((body.email ?? "").trim() !== "" && !email) {
+    return NextResponse.json({ error: "Некорректная почта" }, { status: 400 });
+  }
 
-  const rows = await sql<{
-    id: number;
-    department_id: number;
-    name: string;
-    title: string;
-  }>(
-    `INSERT INTO employees (department_id, name, title)
-     VALUES ($1, $2, $3)
-     RETURNING id, department_id, name, title`,
-    [departmentId, name, title],
-  );
-  return NextResponse.json({ employee: rows[0] });
+  try {
+    const rows = await sql<{
+      id: number;
+      department_id: number;
+      name: string;
+      title: string;
+      email: string | null;
+    }>(
+      `INSERT INTO employees (department_id, name, title, email)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, department_id, name, title, email`,
+      [departmentId, name, title, email],
+    );
+    return NextResponse.json({ employee: rows[0] });
+  } catch (error) {
+    if (duplicateEmail(error)) {
+      return NextResponse.json(
+        { error: "Эта почта уже указана у другого сотрудника" },
+        { status: 409 },
+      );
+    }
+    throw error;
+  }
 }
 
 export async function PATCH(request: Request) {
@@ -53,6 +78,7 @@ export async function PATCH(request: Request) {
     departmentId?: number;
     name?: string;
     title?: string;
+    email?: string;
   };
   try {
     body = await request.json();
@@ -64,25 +90,41 @@ export async function PATCH(request: Request) {
   const name = (body.name ?? "").trim();
   const title = (body.title ?? "").trim();
   const departmentId = body.departmentId;
+  const email = normalizeEmail(body.email ?? "");
   if (!id || !name || !departmentId) {
     return NextResponse.json(
       { error: "Нужны id, имя и отдел" },
       { status: 400 },
     );
   }
+  if ((body.email ?? "").trim() !== "" && !email) {
+    return NextResponse.json({ error: "Некорректная почта" }, { status: 400 });
+  }
 
-  const rows = await sql<{
+  let rows: Array<{
     id: number;
     department_id: number;
     name: string;
     title: string;
-  }>(
-    `UPDATE employees
-     SET department_id = $1, name = $2, title = $3
-     WHERE id = $4
-     RETURNING id, department_id, name, title`,
-    [departmentId, name, title, id],
-  );
+    email: string | null;
+  }>;
+  try {
+    rows = await sql(
+      `UPDATE employees
+       SET department_id = $1, name = $2, title = $3, email = $4
+       WHERE id = $5
+       RETURNING id, department_id, name, title, email`,
+      [departmentId, name, title, email, id],
+    );
+  } catch (error) {
+    if (duplicateEmail(error)) {
+      return NextResponse.json(
+        { error: "Эта почта уже указана у другого сотрудника" },
+        { status: 409 },
+      );
+    }
+    throw error;
+  }
   if (!rows[0]) {
     return NextResponse.json({ error: "Сотрудник не найден" }, { status: 404 });
   }

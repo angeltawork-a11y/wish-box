@@ -8,6 +8,7 @@ export type Employee = {
   department_id: number;
   name: string;
   title: string;
+  email: string;
   department_name?: string;
 };
 
@@ -32,5 +33,6 @@ export type StaffTree = {
     id: number;
     name: string;
     title: string;
+    email: string;
   }>;
 };
