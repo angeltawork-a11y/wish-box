@@ -3,19 +3,20 @@ import { PRIZE_IMAGES } from "@/lib/prizes";
 
 type Tone = "dark" | "light";
 
-const LAYOUT: { col: number; row: number; w: number; rot: number }[] = [
-  { col: 0, row: 0, w: 1.15, rot: -6 },
-  { col: 1, row: 0, w: 1.05, rot: 4 },
-  { col: 2, row: 0, w: 1.1, rot: -3 },
-  { col: 3, row: 0, w: 1, rot: 8 },
-  { col: 0, row: 1, w: 1.08, rot: 5 },
-  { col: 1, row: 1, w: 1.12, rot: -8 },
-  { col: 2, row: 1, w: 1.06, rot: 3 },
-  { col: 3, row: 1, w: 1.14, rot: -5 },
-  { col: 0, row: 2, w: 1.1, rot: 7 },
-  { col: 1, row: 2, w: 1.04, rot: -4 },
-  { col: 2, row: 2, w: 1.16, rot: 2 },
-  { col: 3, row: 2, w: 1.08, rot: -7 },
+/** Full-viewport scatter — prizes readable at ~50% opacity. */
+const SCATTER: { left: number; top: number; w: number; rot: number }[] = [
+  { left: 1, top: 2, w: 30, rot: -7 },
+  { left: 68, top: 0, w: 28, rot: 5 },
+  { left: 34, top: 1, w: 26, rot: -3 },
+  { left: 82, top: 18, w: 24, rot: 9 },
+  { left: 0, top: 38, w: 27, rot: 4 },
+  { left: 72, top: 42, w: 30, rot: -6 },
+  { left: 38, top: 36, w: 32, rot: 2 },
+  { left: 12, top: 68, w: 29, rot: -5 },
+  { left: 58, top: 62, w: 28, rot: 7 },
+  { left: 84, top: 72, w: 26, rot: -4 },
+  { left: 22, top: 82, w: 31, rot: 3 },
+  { left: 46, top: 78, w: 27, rot: -8 },
 ];
 
 type Props = {
@@ -33,14 +34,13 @@ export function PrizeBackdrop({ tone = "light", className = "" }: Props) {
     >
       <div className="prize-backdrop__mosaic">
         {PRIZE_IMAGES.map((prize, i) => {
-          const slot = LAYOUT[i % LAYOUT.length];
-          return (
-            <PrizeTile key={prize.src} prize={prize} slot={slot} />
-          );
+          const slot = SCATTER[i % SCATTER.length];
+          return <PrizeTile key={prize.src} prize={prize} slot={slot} />;
         })}
       </div>
       <div className="prize-backdrop__scrim" />
       <div className="prize-backdrop__vignette" />
+      <div className="prize-backdrop__center-dim" />
     </div>
   );
 }
@@ -50,28 +50,26 @@ function PrizeTile({
   slot,
 }: {
   prize: (typeof PRIZE_IMAGES)[number];
-  slot: (typeof LAYOUT)[number];
+  slot: (typeof SCATTER)[number];
 }) {
-  const left = `${slot.col * 25 + 2}%`;
-  const top = `${slot.row * 33 + 2}%`;
-
   return (
     <div
       className="prize-backdrop__tile"
       style={{
-        left,
-        top,
-        width: `${22 * slot.w}%`,
+        left: `${slot.left}%`,
+        top: `${slot.top}%`,
+        width: `${slot.w}%`,
         transform: `rotate(${slot.rot}deg)`,
       }}
     >
       <Image
         src={prize.src}
         alt=""
-        width={400}
-        height={280}
+        width={960}
+        height={640}
+        quality={92}
         className="prize-backdrop__img"
-        sizes="25vw"
+        sizes="(max-width: 768px) 45vw, 30vw"
         priority={false}
       />
     </div>

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { GiftBoxHeroArt } from "@/components/GiftBoxHeroArt";
 
 const NAV_DELAY_MS = 400;
 
@@ -10,7 +11,6 @@ type Props = {
   label?: string;
   href?: string;
   size?: "hero" | "compact";
-  /** When set, renders a non-interactive box at this width (px). */
   widthPx?: number;
 };
 
@@ -39,21 +39,24 @@ export function StaticGiftBox({
     }, NAV_DELAY_MS);
   }
 
-  const content = (
-  <>
+  const boxVisual = isHero ? (
+    <GiftBoxHeroArt className="static-gift-box__svg" />
+  ) : (
     <Image
       src="/hero-gift-box.png"
       alt=""
       width={560}
       height={560}
       className="static-gift-box__img"
-      priority={isHero}
-      sizes={isHero ? "(max-width: 480px) 88vw, 420px" : "140px"}
+      sizes="140px"
     />
-    {isHero ? (
-      <span className="static-gift-box__cta">{label}</span>
-    ) : null}
-  </>
+  );
+
+  const content = (
+    <>
+      {boxVisual}
+      {isHero ? <span className="static-gift-box__cta">{label}</span> : null}
+    </>
   );
 
   if (isHero) {

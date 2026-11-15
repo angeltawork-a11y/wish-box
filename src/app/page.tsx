@@ -8,7 +8,7 @@ export default function HomePage() {
   return (
     <main>
       <PageFrame tone="dark" className="min-h-[100svh] text-white">
-        <header className="flex items-center justify-end px-5 py-5 sm:px-10">
+        <header className="relative z-10 flex items-center justify-end px-5 py-5 sm:px-10">
           <Link
             href="/admin"
             className="text-sm text-white/70 transition hover:text-white"
@@ -17,17 +17,17 @@ export default function HomePage() {
           </Link>
         </header>
 
-        <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-5xl flex-col items-center justify-center gap-8 px-5 pb-16 pt-2 text-center sm:px-10">
-          <div className="animate-rise space-y-4">
-            <h1 className="display text-[clamp(2rem,7vw,4.25rem)] leading-[1.05] text-white drop-shadow-sm">
+        <div className="hero-home">
+          <div className="hero-home__copy animate-rise">
+            <h1 className="display text-[clamp(1.65rem,4.5vw,3rem)] leading-[1.08] text-white drop-shadow-md">
               Волшебный ящик желаний
             </h1>
-            <p className="mx-auto max-w-md text-base text-white/88 sm:text-lg drop-shadow-sm">
-              Откройте ящик, сохраните данные и заполните Wish List.
+            <p className="mx-auto mt-3 max-w-md text-sm text-white/90 sm:text-base drop-shadow-sm">
+              Нажмите на коробку, сохраните данные и заполните Wish List.
             </p>
           </div>
 
-          <div className="w-full max-w-[480px]">
+          <div className="hero-home__box">
             <StaticGiftBox label="Написать желание" />
           </div>
         </div>
