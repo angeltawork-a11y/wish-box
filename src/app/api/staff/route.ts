@@ -17,7 +17,7 @@ export async function GET() {
     "SELECT id, name FROM departments ORDER BY name ASC",
   );
   const employees = await sql<Employee>(
-    `SELECT e.id, e.department_id, e.name, e.title, d.name AS department_name
+    `SELECT e.id, e.department_id, e.name, e.title, COALESCE(e.email, '') AS email, d.name AS department_name
      FROM employees e
      JOIN departments d ON d.id = e.department_id
      ORDER BY d.name ASC, e.name ASC`,
@@ -28,7 +28,12 @@ export async function GET() {
     name: d.name,
     employees: employees
       .filter((e) => e.department_id === d.id)
-      .map((e) => ({ id: e.id, name: e.name, title: e.title })),
+      .map((e) => ({
+        id: e.id,
+        name: e.name,
+        title: e.title,
+        email: e.email,
+      })),
   }));
 
   return NextResponse.json({ departments: tree, employees });
