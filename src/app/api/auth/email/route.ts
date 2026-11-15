@@ -30,6 +30,12 @@ function hashesMatch(left: string, right: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+function normalizeName(value: string): string | null {
+  const name = value.trim().replace(/\s+/g, " ");
+  if (name.length < 2 || name.length > 120) return null;
+  return name;
+}
+
 export async function POST(request: Request) {
   const limited = rateLimit(`email-code:${clientIp(request)}`, 8, 10 * 60_000);
   if (!limited.ok) {
@@ -46,7 +52,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { email?: string };
+  let body: { email?: string; name?: string };
   try {
     body = await request.json();
   } catch {
@@ -54,9 +60,10 @@ export async function POST(request: Request) {
   }
 
   const email = normalizeEmail(body.email ?? "");
-  if (!email) {
+  const name = normalizeName(body.name ?? "");
+  if (!email || !name) {
     return NextResponse.json(
-      { error: "Укажите рабочую почту" },
+      { error: "Укажите имя и рабочую почту" },
       { status: 400 },
     );
   }
@@ -82,8 +89,10 @@ export async function POST(request: Request) {
   await ensureSeeded();
 
   const found = await sql<{ id: number }>(
-    `SELECT id FROM employees WHERE LOWER(email) = $1 LIMIT 1`,
-    [email],
+    `SELECT id FROM employees
+     WHERE LOWER(email) = $1 AND LOWER(TRIM(name)) = LOWER($2)
+     LIMIT 1`,
+    [email, name],
   );
 
   if (found[0]) {
@@ -124,7 +133,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     ok: true,
     message:
-      "Если эта почта есть в справочнике, код уже отправлен. Он действует 10 минут.",
+      "Если имя и почта есть в справочнике, код уже отправлен. Он действует 10 минут.",
   });
 }
 
@@ -137,7 +146,7 @@ export async function PUT(request: Request) {
     );
   }
 
-  let body: { email?: string; code?: string };
+  let body: { email?: string; name?: string; code?: string };
   try {
     body = await request.json();
   } catch {
@@ -145,10 +154,11 @@ export async function PUT(request: Request) {
   }
 
   const email = normalizeEmail(body.email ?? "");
+  const name = normalizeName(body.name ?? "");
   const code = (body.code ?? "").trim();
-  if (!email || !/^\d{6}$/.test(code)) {
+  if (!email || !name || !/^\d{6}$/.test(code)) {
     return NextResponse.json(
-      { error: "Укажите почту и код из 6 цифр" },
+      { error: "Укажите имя, почту и код из 6 цифр" },
       { status: 400 },
     );
   }
@@ -193,9 +203,9 @@ export async function PUT(request: Request) {
     `SELECT e.id, e.name, e.title, e.email, d.name AS department_name
      FROM employees e
      JOIN departments d ON d.id = e.department_id
-     WHERE LOWER(e.email) = $1
+     WHERE LOWER(e.email) = $1 AND LOWER(TRIM(e.name)) = LOWER($2)
      LIMIT 1`,
-    [email],
+    [email, name],
   );
   const person = people[0];
   if (!person) {

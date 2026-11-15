@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { EmployeeContext } from "@/lib/employee-types";
 
 export function EmployeeForm() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
@@ -24,6 +25,7 @@ export function EmployeeForm() {
         (data: { saved?: boolean; employee?: EmployeeContext | null }) => {
           if (cancelled) return;
           if (data.saved && data.employee) {
+            setName(data.employee.name);
             setEmail(data.employee.email);
             setSavedEmployee(data.employee);
           }
@@ -47,7 +49,7 @@ export function EmployeeForm() {
       const res = await fetch("/api/auth/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ name, email }),
       });
       const data = (await res.json()) as { error?: string; message?: string };
       if (!res.ok) {
@@ -71,7 +73,7 @@ export function EmployeeForm() {
       const res = await fetch("/api/auth/email", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
+        body: JSON.stringify({ name, email, code }),
       });
       const data = (await res.json()) as {
         error?: string;
@@ -111,6 +113,24 @@ export function EmployeeForm() {
   return (
     <div className="space-y-6">
       <form onSubmit={codeSent ? verifyCode : requestCode} className="space-y-5">
+        <div>
+          <label className="mb-2 block text-sm font-semibold tracking-wide">
+            Имя
+          </label>
+          <input
+            className="field"
+            value={name}
+            onChange={(e) => {
+              setCodeSent(false);
+              setSavedEmployee(null);
+              setName(e.target.value);
+            }}
+            placeholder="Как вас зовут"
+            autoComplete="name"
+            required
+          />
+        </div>
+
         <div>
           <label className="mb-2 block text-sm font-semibold tracking-wide">
             Рабочая почта
