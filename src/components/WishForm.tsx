@@ -160,13 +160,13 @@ export function WishForm({ amount, onSuccess }: Props) {
 
       <div>
         <label className="mb-2 block text-sm font-semibold tracking-wide">
-          И желания на будущее
+          Я хочу
         </label>
         <textarea
           className="field min-h-[140px] resize-y"
           value={wish}
           onChange={(e) => setWish(e.target.value)}
-          placeholder="Чего хотите для себя, команды или компании…"
+          placeholder="Напишите свое желание на выбранную сумму, прикрепите ссылку и/или картинку, чтобы получить именно то, что мы хотим)"
           required
         />
       </div>
