@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { GiftBoxArt } from "@/components/GiftBoxArt";
+import { StaticGiftBox } from "@/components/StaticGiftBox";
 import { amountVisualScale, formatAmountRub } from "@/lib/amounts";
 
 type Props = {
@@ -19,9 +19,7 @@ export function AmountBox({ amount }: Props) {
       style={{ width: `${sizePx}px` }}
       aria-label={`Выбрать сумму ${formatAmountRub(amount)}`}
     >
-      <span className="amount-box__stage" aria-hidden="true">
-        <GiftBoxArt className="amount-box__art" />
-      </span>
+      <StaticGiftBox size="compact" widthPx={sizePx} />
       <span className="amount-box__value">{formatAmountRub(amount)}</span>
     </Link>
   );

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { EmployeeForm } from "@/components/EmployeeForm";
+import { PageFrame } from "@/components/PageFrame";
 
 export default function EmployeePage() {
   return (
-    <main className="min-h-[100svh] bg-[var(--white)]">
-      <div className="amounts-atmosphere relative overflow-hidden border-b border-[var(--line)]">
-        <header className="relative z-10 mx-auto flex max-w-3xl items-center justify-between px-5 py-5 sm:px-10">
+    <main className="min-h-[100svh]">
+      <PageFrame tone="light">
+        <header className="mx-auto flex max-w-3xl items-center justify-between border-b border-[var(--line)]/80 bg-white/75 px-5 py-5 backdrop-blur-sm sm:px-10">
           <Link
             href="/"
             className="text-sm text-[var(--ink)]/60 transition hover:text-[var(--orange-deep)]"
@@ -20,23 +21,21 @@ export default function EmployeePage() {
           </Link>
         </header>
 
-        <div className="relative z-10 mx-auto max-w-3xl px-5 pb-10 pt-4 sm:px-10">
+        <div className="mx-auto max-w-3xl px-5 pb-10 pt-8 sm:px-10">
           <p className="brand text-xs uppercase tracking-[0.18em] text-[var(--orange-deep)]">
             Волшебный ящик желаний
           </p>
           <h1 className="display mt-3 text-3xl sm:text-4xl">Кто вы?</h1>
-          <p className="mt-3 max-w-md text-[var(--ink)]/70">
+          <p className="mt-3 max-w-md text-[var(--ink)]/80">
             Сохраните имя и должность — отдел подставится из справочника. Потом
             можно заполнить Wish List.
           </p>
-        </div>
-      </div>
 
-      <section className="mx-auto max-w-3xl px-5 py-10 sm:px-10">
-        <div className="border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-8">
-          <EmployeeForm />
+          <div className="mt-10 border border-[var(--line)] bg-white/92 p-6 shadow-sm backdrop-blur-md sm:p-8">
+            <EmployeeForm />
+          </div>
         </div>
-      </section>
+      </PageFrame>
     </main>
   );
 }
