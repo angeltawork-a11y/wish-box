@@ -25,10 +25,10 @@ export default function EmployeePage() {
           <p className="brand text-xs uppercase tracking-[0.18em] text-[var(--orange-deep)]">
             Волшебный ящик желаний
           </p>
-          <h1 className="display mt-3 text-3xl sm:text-4xl">Вход по почте</h1>
+          <h1 className="display mt-3 text-3xl sm:text-4xl">Вход</h1>
           <p className="mt-3 max-w-md text-[var(--ink)]/80">
-            Укажите рабочую почту из справочника. Код придёт на письмо, после
-            него можно заполнить Wish List.
+            Укажите имя и рабочую почту из справочника. Код придёт на письмо,
+            после него можно заполнить Wish List.
           </p>
 
           <div className="mt-10 border border-[var(--line)] bg-white/92 p-6 shadow-sm backdrop-blur-md sm:p-8">
