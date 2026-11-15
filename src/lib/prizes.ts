@@ -1,15 +1,11 @@
-/** Prize imagery for decorative backgrounds (Unsplash / generated certs). */
+/** Realistic prize photos used only as a background collage. */
 export const PRIZE_IMAGES = [
-  { src: "/prizes/iphone.jpg", alt: "iPhone" },
+  { src: "/prizes/iphone.jpg", alt: "iPhone 17" },
   { src: "/prizes/macbook.jpg", alt: "MacBook" },
-  { src: "/prizes/golden-apple.jpg", alt: "Сертификат Золотое яблоко" },
-  { src: "/prizes/ozon.jpg", alt: "Сертификат OZON" },
+  { src: "/prizes/golden-apple.jpg", alt: "Подарочная карта Золотое яблоко" },
+  { src: "/prizes/ozon.jpg", alt: "Подарочный сертификат OZON" },
+  { src: "/prizes/airpods.jpg", alt: "Наушники Apple" },
+  { src: "/prizes/watch.jpg", alt: "Apple Watch" },
   { src: "/prizes/scooter.jpg", alt: "Электросамокат" },
   { src: "/prizes/snowmobile.jpg", alt: "Снегоход" },
-  { src: "/prizes/airpods.jpg", alt: "Apple AirPods" },
-  { src: "/prizes/smartwatch.jpg", alt: "Смарт-часы" },
-  { src: "/prizes/travel.jpg", alt: "Путешествие" },
-  { src: "/prizes/spa.jpg", alt: "СПА" },
-  { src: "/prizes/coffee.jpg", alt: "Кофемашина" },
-  { src: "/prizes/headphones.jpg", alt: "Наушники" },
 ] as const;

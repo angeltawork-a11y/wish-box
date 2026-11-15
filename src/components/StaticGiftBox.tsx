@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { GiftBoxHeroArt } from "@/components/GiftBoxHeroArt";
 
 const NAV_DELAY_MS = 400;
 
@@ -39,22 +38,17 @@ export function StaticGiftBox({
     }, NAV_DELAY_MS);
   }
 
-  const boxVisual = isHero ? (
-    <GiftBoxHeroArt className="static-gift-box__svg" />
-  ) : (
-    <Image
-      src="/hero-gift-box.png"
-      alt=""
-      width={560}
-      height={560}
-      className="static-gift-box__img"
-      sizes="140px"
-    />
-  );
-
   const content = (
     <>
-      {boxVisual}
+      <Image
+        src="/hero-gift-box.png"
+        alt=""
+        width={640}
+        height={640}
+        className="static-gift-box__img"
+        priority={isHero}
+        sizes={isHero ? "40vw" : "140px"}
+      />
       {isHero ? <span className="static-gift-box__cta">{label}</span> : null}
     </>
   );
