@@ -160,7 +160,7 @@ export function WishForm({ amount, onSuccess }: Props) {
           className="field min-h-[140px] resize-y"
           value={wish}
           onChange={(e) => setWish(e.target.value)}
-          placeholder="Напишите свое желание на выбранную сумму, прикрепите ссылку и/или картинку, чтобы получить именно то, что мы хотим)"
+          placeholder="Напишите свое желание на выбранную сумму, прикрепите ссылку и/или картинку, чтобы получить именно то, что вы хотите)"
           required
         />
       </div>
