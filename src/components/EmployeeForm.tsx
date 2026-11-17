@@ -51,9 +51,17 @@ export function EmployeeForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email }),
       });
-      const data = (await res.json()) as { error?: string; message?: string };
+      const data = (await res.json()) as {
+        error?: string;
+        message?: string;
+        employee?: EmployeeContext;
+      };
       if (!res.ok) {
-        setError(data.error || "Не удалось отправить код");
+        setError(data.error || "Не удалось войти");
+        return;
+      }
+      if (data.employee) {
+        setSavedEmployee(data.employee);
         return;
       }
       setCodeSent(true);

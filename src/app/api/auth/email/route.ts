@@ -36,6 +36,85 @@ function normalizeName(value: string): string | null {
   return name;
 }
 
+type StaffPerson = {
+  id: number;
+  name: string;
+  title: string;
+  department_name: string;
+  email: string;
+};
+
+function sessionFor(person: StaffPerson, email: string): EmployeeContext {
+  return {
+    name: person.name,
+    title: person.title,
+    department: person.department_name,
+    employeeId: person.id,
+    email,
+  };
+}
+
+function signedIn(person: StaffPerson, email: string) {
+  const employee = sessionFor(person, email);
+  const res = NextResponse.json({ ok: true, employee });
+  res.cookies.set(
+    EMPLOYEE_COOKIE,
+    createEmployeeToken(employee),
+    employeeCookieOptions(),
+  );
+  return res;
+}
+
+function samePersonName(left: string, right: string): boolean {
+  const words = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .split(" ")
+      .filter(Boolean)
+      .sort()
+      .join(" ");
+  return words(left) === words(right);
+}
+
+async function findByNameAndEmail(
+  name: string,
+  email: string,
+): Promise<StaffPerson | null> {
+  const rows = await sql<StaffPerson>(
+    `SELECT e.id, e.name, e.title, COALESCE(e.email, '') AS email, d.name AS department_name
+     FROM employees e
+     JOIN departments d ON d.id = e.department_id
+     WHERE LOWER(TRIM(e.name)) = LOWER($1)
+        OR LOWER(e.name) LIKE '%' || LOWER($1) || '%'
+        OR LOWER($1) LIKE '%' || LOWER(TRIM(e.name)) || '%'`,
+    [name],
+  );
+  const named = rows.filter((row) => samePersonName(row.name, name));
+  const open = named.filter((row) => row.email === "" || row.email.toLowerCase() === email);
+  if (open.length !== 1) return null;
+  const person = open[0];
+  if (person.email === "") {
+    try {
+      await sql(
+        `UPDATE employees
+         SET email = $1
+         WHERE id = $2 AND (email IS NULL OR email = '')`,
+        [email, person.id],
+      );
+    } catch (error) {
+      const code =
+        typeof error === "object" && error !== null && "code" in error
+          ? (error as { code?: string }).code
+          : "";
+      if (code === "23505") return null;
+      throw error;
+    }
+  }
+  return { ...person, email };
+}
+
 export async function POST(request: Request) {
   const limited = rateLimit(`email-code:${clientIp(request)}`, 8, 10 * 60_000);
   if (!limited.ok) {
@@ -76,59 +155,46 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!isMailConfigured()) {
+  await ensureSeeded();
+
+  const person = await findByNameAndEmail(name, email);
+  if (!person) {
     return NextResponse.json(
-      {
-        error:
-          "Отправка писем не настроена. Добавьте RESEND_API_KEY и MAIL_FROM.",
-      },
+      { error: "Имя и почта не совпали со справочником." },
+      { status: 401 },
+    );
+  }
+
+  if (!isMailConfigured()) {
+    return signedIn(person, email);
+  }
+
+  const code = randomInt(0, 1_000_000).toString().padStart(6, "0");
+  const codeHash = hashCode(email, code);
+  if (!codeHash) {
+    return NextResponse.json(
+      { error: "Вход не настроен: задайте SESSION_SECRET." },
       { status: 503 },
     );
   }
-
-  await ensureSeeded();
-
-  const found = await sql<{ id: number }>(
-    `SELECT id FROM employees
-     WHERE LOWER(email) = $1 AND LOWER(TRIM(name)) = LOWER($2)
-     LIMIT 1`,
-    [email, name],
-  );
-
-  if (found[0]) {
-    const code = randomInt(0, 1_000_000).toString().padStart(6, "0");
-    const codeHash = hashCode(email, code);
-    if (!codeHash) {
-      return NextResponse.json(
-        { error: "Вход не настроен: задайте SESSION_SECRET." },
-        { status: 503 },
-      );
-    }
-    let mailState: "sent" | "unconfigured";
-    try {
-      mailState = await sendLoginCode(email, code);
-    } catch {
-      return NextResponse.json(
-        { error: "Не удалось отправить письмо. Попробуйте ещё раз." },
-        { status: 502 },
-      );
-    }
-    if (mailState === "unconfigured") {
-      return NextResponse.json(
-        {
-          error:
-            "Отправка писем не настроена. Добавьте RESEND_API_KEY и MAIL_FROM.",
-        },
-        { status: 503 },
-      );
-    }
-    await sql(`DELETE FROM email_login_codes WHERE LOWER(email) = $1`, [email]);
-    await sql(
-      `INSERT INTO email_login_codes (email, code_hash, expires_at)
-       VALUES ($1, $2, $3)`,
-      [email, codeHash, new Date(Date.now() + CODE_TTL_MS).toISOString()],
+  let mailState: "sent" | "unconfigured";
+  try {
+    mailState = await sendLoginCode(email, code);
+  } catch {
+    return NextResponse.json(
+      { error: "Не удалось отправить письмо. Попробуйте ещё раз." },
+      { status: 502 },
     );
   }
+  if (mailState === "unconfigured") {
+    return signedIn(person, email);
+  }
+  await sql(`DELETE FROM email_login_codes WHERE LOWER(email) = $1`, [email]);
+  await sql(
+    `INSERT INTO email_login_codes (email, code_hash, expires_at)
+     VALUES ($1, $2, $3)`,
+    [email, codeHash, new Date(Date.now() + CODE_TTL_MS).toISOString()],
+  );
 
   return NextResponse.json({
     ok: true,
