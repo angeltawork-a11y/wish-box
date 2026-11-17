@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { isWishAmount } from "@/lib/amounts";
-import { readEmployeeSession } from "@/lib/employee-session";
-import { ensureSeeded } from "@/lib/seed";
 import { sql } from "@/lib/db";
 import {
   clientIp,
@@ -29,6 +27,16 @@ function isSafeHttpUrl(value: string): boolean {
   }
 }
 
+function normalizeTelegram(raw: string): string | null {
+  let value = raw.trim();
+  value = value.replace(/^https?:\/\/(?:t\.me|telegram\.me)\//i, "");
+  value = value.replace(/^t\.me\//i, "");
+  value = value.replace(/^@/, "");
+  value = value.split(/[/?#]/)[0] ?? "";
+  if (!/^[\p{L}\p{N}_]{3,32}$/u.test(value)) return null;
+  return value;
+}
+
 export async function POST(request: Request) {
   const limited = rateLimit(`wish-submit:${clientIp(request)}`, 10, 60_000);
   if (!limited.ok) {
@@ -38,8 +46,6 @@ export async function POST(request: Request) {
     );
   }
 
-  await ensureSeeded();
-
   let form: FormData;
   try {
     form = await request.formData();
@@ -47,22 +53,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Некорректный запрос" }, { status: 400 });
   }
 
-  const session = await readEmployeeSession();
-  if (!session) {
-    return NextResponse.json(
-      { error: "Сначала сохраните данные сотрудника" },
-      { status: 401 },
-    );
-  }
-
-  const name = session.name;
-  const title = session.title;
-  let department = session.department;
-  let employeeId = session.employeeId;
+  const name = String(form.get("name") ?? "")
+    .trim()
+    .replace(/\s+/g, " ");
+  const telegram = normalizeTelegram(String(form.get("telegram") ?? ""));
   const wish = String(form.get("wish") ?? "").trim();
   const link = String(form.get("link") ?? "").trim();
   const amountRaw = Number(form.get("amount"));
 
+  if (name.length < 2 || name.length > 80) {
+    return NextResponse.json({ error: "Укажите имя" }, { status: 400 });
+  }
+  if (!telegram) {
+    return NextResponse.json(
+      { error: "Укажите ник в Telegram, например @name" },
+      { status: 400 },
+    );
+  }
   if (!isWishAmount(amountRaw)) {
     return NextResponse.json(
       { error: "Выберите допустимую сумму" },
@@ -119,48 +126,14 @@ export async function POST(request: Request) {
     imageName = imageEntry.name.slice(0, 200) || "image";
   }
 
-  if (employeeId != null) {
-    const match = await sql<{
-      id: number;
-      name: string;
-      department_name: string;
-    }>(
-      `SELECT e.id, e.name, d.name AS department_name
-       FROM employees e
-       JOIN departments d ON d.id = e.department_id
-       WHERE e.id = $1`,
-      [employeeId],
-    );
-    const row = match[0];
-    if (
-      row &&
-      row.name.trim().toLowerCase() === name.toLowerCase()
-    ) {
-      department = row.department_name;
-    } else {
-      employeeId = null;
-    }
-  }
-
   const inserted = await sql<{ id: number }>(
     `INSERT INTO wishes (
-       employee_id, employee_name, employee_title, department_name,
+       employee_id, employee_name, employee_title, department_name, telegram,
        wish_text, amount, wish_link, image_data, image_mime, image_name
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     VALUES (NULL, $1, '', '', $2, $3, $4, $5, $6, $7, $8)
      RETURNING id`,
-    [
-      employeeId,
-      name,
-      title,
-      department,
-      wish,
-      amount,
-      link,
-      imageData,
-      imageMime,
-      imageName,
-    ],
+    [name, telegram, wish, amount, link, imageData, imageMime, imageName],
   );
 
   return NextResponse.json({ ok: true, id: inserted[0]?.id });

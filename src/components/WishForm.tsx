@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { formatAmountRub, type WishAmount } from "@/lib/amounts";
-import type { EmployeeContext } from "@/lib/employee-types";
 
 type Props = {
   amount: WishAmount;
@@ -18,33 +17,14 @@ const ALLOWED_TYPES = new Set([
 ]);
 
 export function WishForm({ amount, onSuccess }: Props) {
-  const [employee, setEmployee] = useState<EmployeeContext | null>(null);
-  const [booting, setBooting] = useState(true);
+  const [name, setName] = useState("");
+  const [telegram, setTelegram] = useState("");
   const [wish, setWish] = useState("");
   const [link, setLink] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/employee")
-      .then((r) => r.json())
-      .then((data: { saved?: boolean; employee?: EmployeeContext | null }) => {
-        if (cancelled) return;
-        if (data.saved && data.employee) {
-          setEmployee(data.employee);
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setBooting(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (!image) {
@@ -78,13 +58,11 @@ export function WishForm({ amount, onSuccess }: Props) {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
-    if (!employee) {
-      setError("Сначала сохраните данные сотрудника");
-      return;
-    }
     setLoading(true);
     try {
       const form = new FormData();
+      form.set("name", name);
+      form.set("telegram", telegram);
       form.set("wish", wish);
       form.set("amount", String(amount));
       form.set("link", link);
@@ -107,23 +85,6 @@ export function WishForm({ amount, onSuccess }: Props) {
     }
   }
 
-  if (booting) {
-    return <p className="text-[var(--ink)]/60">Загрузка…</p>;
-  }
-
-  if (!employee) {
-    return (
-      <div className="space-y-4">
-        <p className="text-[var(--ink)]/75">
-          Нужно сначала сохранить имя и должность.
-        </p>
-        <a href="/employee" className="btn-primary inline-flex">
-          К данным сотрудника
-        </a>
-      </div>
-    );
-  }
-
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       <div className="border border-[var(--line)] bg-[var(--orange-mist)] px-4 py-3">
@@ -135,21 +96,34 @@ export function WishForm({ amount, onSuccess }: Props) {
         </p>
       </div>
 
-      <div className="border border-[var(--line)] bg-[var(--white)] px-4 py-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink)]/55">
-          Сотрудник
-        </p>
-        <p className="mt-1 font-semibold text-[var(--ink)]">{employee.name}</p>
-        <p className="text-sm text-[var(--ink)]/70">
-          {[employee.title, employee.department].filter(Boolean).join(" · ") ||
-            "Отдел определится при сохранении"}
-        </p>
-        <a
-          href="/employee"
-          className="mt-2 inline-block text-sm text-[var(--orange-deep)] hover:underline"
-        >
-          Изменить данные
-        </a>
+      <div>
+        <label className="mb-2 block text-sm font-semibold tracking-wide">
+          Имя
+        </label>
+        <input
+          className="field"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Как вас зовут"
+          autoComplete="name"
+          required
+          minLength={2}
+          maxLength={80}
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-semibold tracking-wide">
+          Ник в Telegram
+        </label>
+        <input
+          className="field"
+          value={telegram}
+          onChange={(e) => setTelegram(e.target.value)}
+          placeholder="@username"
+          autoComplete="off"
+          required
+        />
       </div>
 
       <div>
