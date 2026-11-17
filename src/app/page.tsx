@@ -10,7 +10,7 @@ export default function HomePage() {
       <PageFrame tone="dark" className="min-h-[100svh] text-white">
         <header className="relative z-10 flex items-center justify-end px-5 py-5 sm:px-10">
           <Link
-            href="/admin"
+            href="/admin/answers"
             className="text-sm text-white/70 transition hover:text-white"
           >
             Админ
@@ -23,7 +23,7 @@ export default function HomePage() {
               Волшебный ящик желаний
             </h1>
             <p className="mx-auto mt-3 max-w-md text-sm text-white/90 sm:text-base drop-shadow-sm">
-              Нажмите на коробку, войдите по почте и напишите желание.
+              Нажмите на коробку и напишите желание.
             </p>
           </div>
 

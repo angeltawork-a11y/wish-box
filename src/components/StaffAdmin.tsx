@@ -158,8 +158,8 @@ export function StaffAdmin() {
               Справочник сотрудников
             </h1>
           </div>
-          <Link href="/admin" className="btn-ghost">
-            К желаниям
+          <Link href="/admin/answers" className="btn-ghost">
+            К ответам
           </Link>
         </div>
       </header>
