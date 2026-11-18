@@ -41,7 +41,7 @@ function WishPageInner() {
             ← Другая сумма
           </Link>
           <p className="brand text-xs uppercase tracking-[0.16em] text-[var(--orange-deep)]">
-            Волшебный ящик желаний
+            Волшебная коробка желаний
           </p>
         </header>
 
@@ -56,7 +56,7 @@ function WishPageInner() {
             {done ? (
               <div className="animate-rise space-y-4" role="status">
                 <p className="display text-2xl text-[var(--orange-deep)]">
-                  Желание в ящике
+                  Желание в коробке
                 </p>
                 <p className="text-[var(--ink)]/80">
                   Спасибо. Мы бережно сохранили вашу запись.

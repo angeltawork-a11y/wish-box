@@ -24,7 +24,7 @@ export default function AmountsPage() {
 
         <div className="mx-auto max-w-6xl px-5 py-10 sm:px-10">
           <p className="brand text-xs uppercase tracking-[0.18em] text-[var(--orange-deep)]">
-            Волшебный ящик желаний
+            Волшебная коробка желаний
           </p>
           <h1 className="display mt-3 text-3xl sm:text-4xl lg:text-5xl">
             Выберите сумму

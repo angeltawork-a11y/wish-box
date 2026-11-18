@@ -183,7 +183,7 @@ export function WishForm({ amount, onSuccess }: Props) {
       ) : null}
 
       <button type="submit" className="btn-primary w-full sm:w-auto" disabled={loading}>
-        {loading ? "Отправляем…" : "Положить в ящик"}
+        {loading ? "Отправляем…" : "Положить в коробку"}
       </button>
     </form>
   );
