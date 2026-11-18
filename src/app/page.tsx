@@ -20,7 +20,7 @@ export default function HomePage() {
         <div className="hero-home">
           <div className="hero-home__copy animate-rise">
             <h1 className="display text-[clamp(1.65rem,4.5vw,3rem)] leading-[1.08] text-white drop-shadow-md">
-              Волшебный ящик желаний
+              Волшебная коробка желаний
             </h1>
             <p className="mx-auto mt-3 max-w-md text-sm text-white/90 sm:text-base drop-shadow-sm">
               Нажмите на коробку и напишите желание.

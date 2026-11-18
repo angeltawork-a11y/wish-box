@@ -15,7 +15,7 @@ const unbounded = Unbounded({
 });
 
 export const metadata: Metadata = {
-  title: "Волшебный ящик желаний",
+  title: "Волшебная коробка желаний",
   description: "Соберите желания сотрудников в одном месте",
 };
 

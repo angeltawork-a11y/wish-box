@@ -25,7 +25,7 @@ export async function sendLoginCode(
     body: JSON.stringify({
       from,
       to: [to],
-      subject: "Код входа — волшебный ящик желаний",
+      subject: "Код входа — волшебная коробка желаний",
       text: `Код для входа: ${code}\nОн действует 10 минут. Если вы не запрашивали код, проигнорируйте письмо.`,
     }),
   });

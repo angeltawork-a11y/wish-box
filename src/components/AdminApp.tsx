@@ -142,7 +142,7 @@ export function AdminApp() {
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
           <div>
             <p className="brand text-xs uppercase tracking-[0.16em] text-[var(--orange-deep)]">
-              Волшебный ящик желаний
+              Волшебная коробка желаний
             </p>
             <h1 className="display mt-1 text-2xl sm:text-3xl">Ответы</h1>
           </div>
