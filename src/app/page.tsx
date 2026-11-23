@@ -23,7 +23,7 @@ export default function HomePage() {
               Волшебная коробка желаний
             </h1>
             <p className="mx-auto mt-3 max-w-md text-sm text-white/90 sm:text-base drop-shadow-sm">
-              Нажмите на коробку и напишите желание.
+              Нажмите на коробку, укажите имя и ник, затем выберите сумму.
             </p>
           </div>
 
