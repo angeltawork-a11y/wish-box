@@ -48,8 +48,7 @@ function WishPageInner() {
         <div className="mx-auto max-w-3xl px-5 py-10 sm:px-10">
           <h1 className="display text-3xl sm:text-4xl">Ваше желание</h1>
           <p className="mt-3 max-w-md text-[var(--ink)]/80">
-            Укажите имя и ник в Telegram и напишите желание. Можно приложить
-            картинку и ссылку.
+            Напишите желание. Можно приложить картинку и ссылку.
           </p>
 
           <div className="mt-8 border border-[var(--line)] bg-white/92 p-6 shadow-sm backdrop-blur-md sm:p-8">

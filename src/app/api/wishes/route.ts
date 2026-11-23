@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isWishAmount } from "@/lib/amounts";
 import { sql } from "@/lib/db";
+import { normalizeName, normalizeTelegram } from "@/lib/visitor";
 import {
   clientIp,
   rateLimit,
@@ -27,16 +28,6 @@ function isSafeHttpUrl(value: string): boolean {
   }
 }
 
-function normalizeTelegram(raw: string): string | null {
-  let value = raw.trim();
-  value = value.replace(/^https?:\/\/(?:t\.me|telegram\.me)\//i, "");
-  value = value.replace(/^t\.me\//i, "");
-  value = value.replace(/^@/, "");
-  value = value.split(/[/?#]/)[0] ?? "";
-  if (!/^[\p{L}\p{N}_]{3,32}$/u.test(value)) return null;
-  return value;
-}
-
 export async function POST(request: Request) {
   const limited = rateLimit(`wish-submit:${clientIp(request)}`, 10, 60_000);
   if (!limited.ok) {
@@ -53,15 +44,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Некорректный запрос" }, { status: 400 });
   }
 
-  const name = String(form.get("name") ?? "")
-    .trim()
-    .replace(/\s+/g, " ");
+  const name = normalizeName(String(form.get("name") ?? ""));
   const telegram = normalizeTelegram(String(form.get("telegram") ?? ""));
   const wish = String(form.get("wish") ?? "").trim();
   const link = String(form.get("link") ?? "").trim();
   const amountRaw = Number(form.get("amount"));
 
-  if (name.length < 2 || name.length > 80) {
+  if (!name) {
     return NextResponse.json({ error: "Укажите имя" }, { status: 400 });
   }
   if (!telegram) {

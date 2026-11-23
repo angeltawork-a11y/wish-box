@@ -15,7 +15,7 @@ type Props = {
 
 export function StaticGiftBox({
   label = "Написать желание",
-  href = "/amounts",
+  href = "/employee",
   size = "hero",
   widthPx,
 }: Props) {
