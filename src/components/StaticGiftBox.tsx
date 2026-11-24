@@ -41,10 +41,10 @@ export function StaticGiftBox({
   const content = (
     <>
       <Image
-        src="/hero-box.png"
+        src="/hero-box-festive.png"
         alt=""
-        width={640}
-        height={640}
+        width={848}
+        height={892}
         className="static-gift-box__img"
         priority={isHero}
         sizes={isHero ? "40vw" : "140px"}
