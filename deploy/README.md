@@ -16,9 +16,9 @@ docker compose up -d --build
 
 Файлы: `Dockerfile`, `docker-compose.yml`, `deploy/env.example`.
 
-## Vercel + Neon
+## Vercel + Neon (выбранный сценарий WL-24)
 
-См. [deploy/vercel.md](./vercel.md).
+Пошагово в Project store: `docs/wish-box-vercel-neon.md`. Техническая шпаргалка в репозитории: [deploy/vercel.md](./vercel.md).
 
 ## Yandex Cloud (кратко)
 
