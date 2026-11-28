@@ -35,3 +35,9 @@ SESSION_SECRET='dev-local-only' ADMIN_PASSWORD='your-local-password' env -u DATA
 Начальный штат читается только на сервере (`server-only`): из `STAFF_SEED_JSON`, иначе — вымышленный demo-набор в коде (без реальных ФИО). Полный справочник в UI — только после входа администратора; публично доступен лишь lookup отдела по имени и должности.
 
 Желание хранит сумму, текст, опциональную ссылку и изображение (BYTEA, до 5 МБ). Вход в админку и отправка желаний ограничены по IP.
+
+## Публикация вне Cursor
+
+Опубликованная копия на Cursor: `https://wish-box.apps.grok.bot` (домен `.grok.bot` может быть недоступен из РФ).
+
+Для хостинга с российским доменом или VPS: **[deploy/README.md](./deploy/README.md)** — Docker Compose, Vercel, Yandex Cloud; список секретов совпадает с Cursor Secrets.

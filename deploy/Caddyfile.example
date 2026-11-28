@@ -1,0 +1,7 @@
+# Пример для Caddy на VPS (авто-TLS через Let's Encrypt).
+# Запуск: caddy run --config deploy/Caddyfile.example
+# app слушает localhost:3000 (docker compose APP_PORT=3000)
+
+желания.пример.ru {
+    reverse_proxy localhost:3000
+}
